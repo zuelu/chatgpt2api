@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUp, ChevronDown, ImagePlus, Info, LoaderCircle, RectangleHorizontal, RectangleVertical, Square, X } from "lucide-react";
+import { ArrowUp, ChevronDown, ImagePlus, Info, LoaderCircle, Pencil, RectangleHorizontal, RectangleVertical, Sparkles, Square, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type RefObject } from "react";
 
 import { ImageLightbox } from "@/components/image-lightbox";
@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import type { ImageModel } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { ImageConversationMode } from "@/store/image-conversations";
 
 type ImageComposerProps = {
   prompt: string;
@@ -22,9 +23,19 @@ type ImageComposerProps = {
   imageModels: ImageModel[];
   availableQuota: string;
   activeTaskCount: number;
-  referenceImages: Array<{ name: string; dataUrl: string }>;
+  referenceImages: Array<{
+    name: string;
+    dataUrl: string;
+    maskDataUrl?: string;
+    annotations?: Array<{ id: string; x: number; y: number; text: string }>;
+  }>;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   fileInputRef: RefObject<HTMLInputElement | null>;
+  imageMode: ImageConversationMode;
+  onImageModeChange: (mode: ImageConversationMode) => void;
+  onOpenEditStudio: () => void;
+  onOpenEditSourcePicker: () => void;
+  onClearEditSource: () => void;
   onPromptChange: (value: string) => void;
   onImageCountChange: (value: string) => void;
   onImageRatioChange: (value: string) => void;
@@ -95,6 +106,11 @@ export function ImageComposer({
   referenceImages,
   textareaRef,
   fileInputRef,
+  imageMode,
+  onImageModeChange,
+  onOpenEditStudio,
+  onOpenEditSourcePicker,
+  onClearEditSource,
   onPromptChange,
   onImageCountChange,
   onImageRatioChange,
@@ -128,6 +144,8 @@ export function ImageComposer({
   const imageSizeLabel = `${qualityLabel} · ${ratioLabel} · ${imageCount || 1} 张`;
   const selectedModelLabel = modelOptions.find((option) => option.value === imageModel)?.label || imageModel;
   const isCodexModel = imageModel.toLowerCase().includes("codex");
+  const isEditMode = imageMode === "edit";
+  const editSourceImage = isEditMode ? referenceImages[0] ?? null : null;
 
   useEffect(() => {
     if (!isSizeMenuOpen) {
@@ -219,7 +237,105 @@ export function ImageComposer({
           }}
         />
 
-        {referenceImages.length > 0 ? (
+        <div className="mb-2 flex flex-wrap items-center gap-2 px-1 sm:mb-3">
+          <div className="inline-flex rounded-full bg-stone-100 p-1 dark:bg-white/10">
+            <button
+              type="button"
+              onClick={() => onImageModeChange("generate")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-[13px]",
+                !isEditMode
+                  ? "bg-white text-stone-950 shadow-sm dark:bg-stone-900 dark:text-white"
+                  : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100",
+              )}
+            >
+              <Sparkles className="size-3.5" />
+              创作
+            </button>
+            <button
+              type="button"
+              onClick={() => onImageModeChange("edit")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-[13px]",
+                isEditMode
+                  ? "bg-white text-stone-950 shadow-sm dark:bg-stone-900 dark:text-white"
+                  : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100",
+              )}
+            >
+              <Pencil className="size-3.5" />
+              编辑
+            </button>
+          </div>
+
+          {isEditMode && editSourceImage ? (
+            <>
+              <button
+                type="button"
+                onClick={onOpenEditSourcePicker}
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 dark:border-white/10 dark:bg-stone-900 dark:text-stone-200"
+              >
+                <ImagePlus className="size-3.5" />
+                换一张
+              </button>
+              <button
+                type="button"
+                onClick={onClearEditSource}
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 dark:border-white/10 dark:bg-stone-900 dark:text-stone-200"
+              >
+                <Trash2 className="size-3.5" />
+                移除
+              </button>
+            </>
+          ) : isEditMode ? (
+            // 选图浮层关掉之后，还能从这里再打开
+            <button
+              type="button"
+              onClick={onOpenEditSourcePicker}
+              className="inline-flex items-center gap-1.5 rounded-full bg-stone-950 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-stone-800"
+            >
+              <ImagePlus className="size-3.5" />
+              选择图片
+            </button>
+          ) : null}
+        </div>
+
+        {isEditMode && editSourceImage ? (
+            <div className="mb-3 flex items-center gap-3 rounded-[20px] border border-stone-200 bg-stone-50/80 p-2 pr-2 dark:border-white/10 dark:bg-white/5">
+              <img
+                src={editSourceImage.dataUrl}
+                alt="待编辑图片"
+                className="size-14 shrink-0 rounded-2xl object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-stone-800 dark:text-stone-100">
+                  已选择待编辑的图片
+                </p>
+                <p className="truncate text-[11px] text-stone-500 dark:text-stone-400">
+                  {!isEditMode
+                    ? ""
+                    : `${editSourceImage.maskDataUrl ? "已有选区" : "未圈选区域"} · ${
+                        editSourceImage.annotations?.length ?? 0
+                      } 条标注`}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenEditSourcePicker}
+                className="shrink-0 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-300 dark:border-white/10 dark:bg-stone-900 dark:text-stone-200"
+              >
+                换图
+              </button>
+              <button
+                type="button"
+                onClick={onOpenEditStudio}
+                className="shrink-0 rounded-full bg-stone-950 px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-stone-800 dark:bg-white dark:text-stone-950"
+              >
+                打开编辑器
+              </button>
+            </div>
+        ) : null}
+
+        {!isEditMode && referenceImages.length > 0 ? (
           <div className="mb-2 flex gap-2 overflow-x-auto px-1 pb-1 sm:mb-3 sm:flex-wrap sm:overflow-visible sm:pb-0">
             {referenceImages.map((image, index) => (
               <div key={`${image.name}-${index}`} className="relative size-14 shrink-0 sm:size-16">
@@ -283,9 +399,13 @@ export function ImageComposer({
               onChange={(event) => onPromptChange(event.target.value)}
               onPaste={handleTextareaPaste}
               placeholder={
-                referenceImages.length > 0
-                  ? "描述你希望如何修改参考图"
-                  : "输入你想要生成的画面，也可直接粘贴图片"
+                isEditMode
+                  ? editSourceImage
+                    ? "描述你想怎么改，例如：把圈出来的部分换成一顶红色帽子"
+                    : "先选一张图片，再描述要改什么"
+                  : referenceImages.length > 0
+                    ? "描述你希望如何修改参考图"
+                    : "输入你想要生成的画面，也可直接粘贴图片"
               }
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
@@ -307,16 +427,18 @@ export function ImageComposer({
             <div className="rounded-b-[24px] border-t border-stone-100 bg-white px-3 pb-3 pt-2 dark:border-white/10 dark:bg-stone-950/95 sm:absolute sm:inset-x-0 sm:bottom-0 sm:rounded-b-none sm:border-t-0 sm:bg-gradient-to-t sm:from-white sm:via-white/95 sm:to-transparent sm:px-6 sm:pb-4 sm:pt-6 sm:dark:from-stone-950 sm:dark:via-stone-950/95 sm:dark:to-stone-950/0" onClick={(event) => event.stopPropagation()}>
               <div className="flex items-end justify-between gap-2 sm:gap-3">
                 <div className="hide-scrollbar flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:pb-0">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-9 shrink-0 rounded-full border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-none sm:h-10 sm:px-4 sm:text-sm"
-                    onClick={onPickReferenceImage}
-                    aria-label={referenceImages.length > 0 ? "添加参考图" : "上传"}
-                  >
-                    <ImagePlus className="size-3.5 sm:size-4" />
-                    <span className="hidden sm:inline">{referenceImages.length > 0 ? "添加参考图" : "上传"}</span>
-                  </Button>
+                  {!isEditMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-9 shrink-0 rounded-full border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-none sm:h-10 sm:px-4 sm:text-sm"
+                      onClick={onPickReferenceImage}
+                      aria-label={referenceImages.length > 0 ? "添加参考图" : "上传"}
+                    >
+                      <ImagePlus className="size-3.5 sm:size-4" />
+                      <span className="hidden sm:inline">{referenceImages.length > 0 ? "添加参考图" : "上传"}</span>
+                    </Button>
+                  ) : null}
                   <div className="shrink-0 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-600 sm:px-3 sm:py-2 sm:text-xs">
                     <span className="hidden sm:inline">剩余额度 </span>{availableQuota}
                   </div>
@@ -485,6 +607,12 @@ export function ImageComposer({
                               );
                             })}
                           </div>
+                          {!isCodexModel ? (
+                            <p className="mt-2 text-[11px] leading-relaxed text-stone-400">
+                              2K / 4K 仅在 Codex 链路可用（需要 Plus/Team/Pro 账号）。网页链路（当前模型）由上游决定分辨率，
+                              只能指定比例，实际输出约 1.5MP。
+                            </p>
+                          ) : null}
                         </div>
                         <div className="border-t border-stone-100 pt-3">
                           <div className="mb-2 text-sm font-medium text-stone-900">生成数量</div>
@@ -526,9 +654,11 @@ export function ImageComposer({
                 <button
                   type="button"
                   onClick={() => void onSubmit()}
-                  disabled={!prompt.trim()}
+                  disabled={!prompt.trim() || (isEditMode && !editSourceImage)}
                   className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 sm:size-11"
-                  aria-label={referenceImages.length > 0 ? "编辑图片" : "生成图片"}
+                  aria-label={
+                    isEditMode ? "编辑图片" : referenceImages.length > 0 ? "编辑图片" : "生成图片"
+                  }
                 >
                   <ArrowUp className="size-3.5 sm:size-4" />
                 </button>
