@@ -403,6 +403,29 @@ def assistant_message_text(message: dict[str, Any]) -> str:
     return ""
 
 
+def is_visible_assistant_message(message: dict[str, Any]) -> bool:
+    """Return whether an upstream assistant message is intended for the user."""
+    author = message.get("author")
+    if not isinstance(author, dict):
+        return False
+    if str(author.get("role") or "").strip().lower() != "assistant":
+        return False
+
+    metadata = message.get("metadata") or {}
+    if isinstance(metadata, dict) and metadata.get("is_visually_hidden_from_conversation") is True:
+        return False
+
+    recipient = str(message.get("recipient") or "").strip().lower()
+    if recipient and recipient != "all":
+        return False
+
+    channel = str(message.get("channel") or "").strip().lower()
+    if channel and channel != "final":
+        return False
+
+    return True
+
+
 def strip_history(text: str, history_text: str = "") -> str:
     text = str(text or "")
     history_text = str(history_text or "")
@@ -452,7 +475,24 @@ def sanitize_output_text(text: str) -> str:
     # from entity/link annotations, while removing internal citation pointers.
     text = re.sub(r"\ue200([^\ue201]*)\ue201", replace_annotation, text)
     text = re.sub(r"\ue200[^\ue201]*$", "", text)
-    text = re.sub(r"\s+([.,;:!?])", r"\1", text)
+    command_pattern = re.compile(
+        r"^\s*(?:[$#>]\s*)?(?:find|cd|ls|pwd|cp|mv|rm|mkdir|rmdir|touch|cat|grep|rg|sed|awk|"
+        r"git|docker|kubectl|curl|wget|python\d*|pip\d*|npm|npx|bun|yarn|pnpm|if|for|while|"
+        r"case|test|echo|printf)\b",
+        re.IGNORECASE,
+    )
+    normalized_lines: list[str] = []
+    in_code_fence = False
+    for line in text.splitlines(keepends=True):
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            in_code_fence = not in_code_fence
+            normalized_lines.append(line)
+            continue
+        normalized_lines.append(
+            line if in_code_fence or command_pattern.match(line) else re.sub(r"\s+([.,;:!?])", r"\1", line)
+        )
+    text = "".join(normalized_lines)
     return text
 
 
@@ -461,10 +501,7 @@ def assistant_raw_text(event: dict[str, Any], current_text: str = "", history_te
         if not isinstance(candidate, dict):
             continue
         message = candidate.get("message")
-        if not isinstance(message, dict):
-            continue
-        role = str((message.get("author") or {}).get("role") or "").strip().lower()
-        if role != "assistant":
+        if not isinstance(message, dict) or not is_visible_assistant_message(message):
             continue
         text = assistant_message_text(message)
         if text:
@@ -481,7 +518,7 @@ def event_assistant_text(event: dict[str, Any], history_text: str = "") -> str:
         if not isinstance(candidate, dict):
             continue
         message = candidate.get("message")
-        if isinstance(message, dict) and (message.get("author") or {}).get("role") == "assistant":
+        if isinstance(message, dict) and is_visible_assistant_message(message):
             return strip_history(assistant_message_text(message), history_text)
     return ""
 
@@ -702,8 +739,8 @@ def conversation_events(
     yield from iter_conversation_payloads(payloads, history_text, history_messages)
 
 
-def text_backend() -> OpenAIBackendAPI:
-    return OpenAIBackendAPI(access_token=account_service.get_text_access_token())
+def text_backend(model: str = "auto") -> OpenAIBackendAPI:
+    return OpenAIBackendAPI(access_token=account_service.get_text_access_token(model=model))
 
 
 def stream_text_deltas(backend: OpenAIBackendAPI, request: ConversationRequest) -> Iterator[str]:
@@ -741,7 +778,10 @@ def stream_text_deltas(backend: OpenAIBackendAPI, request: ConversationRequest) 
                     token = refreshed_token
                 else:
                     account_service.remove_invalid_token(token, "text_stream")
-                    token = account_service.get_text_access_token(attempted_tokens)
+                    token = account_service.get_text_access_token(
+                        excluded_tokens=set(attempted_tokens),
+                        model=request.model,
+                    )
                 if token:
                     continue
             raise

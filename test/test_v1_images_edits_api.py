@@ -49,7 +49,7 @@ class ImagesEditsApiTests(unittest.TestCase):
         payload = self.handle_calls[0]
         self.assertEqual(payload["prompt"], "edit")
         self.assertEqual(payload["n"], 1)
-        self.assertEqual(payload["images"], [(PNG_BYTES, "image_url.png", "image/png")])
+        self.assertEqual(payload["images"], [(PNG_BYTES, "image_1.png", "image/png")])
 
     def test_edit_rejects_file_id_reference(self):
         """测试图片编辑接口对暂不支持的 file_id 返回明确错误。"""

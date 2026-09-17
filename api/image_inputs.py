@@ -226,7 +226,7 @@ def _safe_filename(name: str, mime_type: str, fallback: str) -> str:
     return cleaned
 
 
-def _decode_data_url(url: str) -> ImageInput:
+def _decode_data_url(url: str, fallback_name: str = "image_url") -> ImageInput:
     """解码 data URL：把内联图片转成标准图片输入元组。"""
     header, separator, payload = url.partition(",")
     if not separator:
@@ -242,7 +242,7 @@ def _decode_data_url(url: str) -> ImageInput:
         raise HTTPException(status_code=400, detail={"error": "image URL is empty"})
     if len(data) > MAX_IMAGE_REFERENCE_BYTES:
         raise HTTPException(status_code=400, detail={"error": "image URL exceeds 50MB limit"})
-    return data, f"image_url.{_extension_from_mime(mime_type)}", mime_type
+    return data, f"{fallback_name}.{_extension_from_mime(mime_type)}", mime_type
 
 
 def _response_mime_type(response: requests.Response, parsed_path: str) -> str:
@@ -266,11 +266,11 @@ def _filename_from_url(parsed_path: str, mime_type: str) -> str:
     return _safe_filename(raw_name, mime_type, "image_url")
 
 
-def _download_image_url(url: str) -> ImageInput:
+def _download_image_url(url: str, fallback_name: str = "image_url") -> ImageInput:
     """下载远程图片：把 http/https 图片链接转成标准图片输入元组。"""
     source = _clean(url)
     if source.startswith("data:"):
-        return _decode_data_url(source)
+        return _decode_data_url(source, fallback_name)
     parsed = urlparse(source)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise HTTPException(status_code=400, detail={"error": "image_url must be an http or https URL"})
@@ -298,10 +298,14 @@ def _download_image_url(url: str) -> ImageInput:
     return data, _filename_from_url(parsed.path, mime_type), mime_type
 
 
-async def read_image_sources(sources: list[ImageSource]) -> list[ImageInput]:
+async def read_image_sources(
+        sources: list[ImageSource],
+        *,
+        number_data_urls: bool = False,
+) -> list[ImageInput]:
     """读取图片来源：上传文件直接读取，URL 下载后统一返回图片元组。"""
     images: list[ImageInput] = []
-    for source in sources:
+    for index, source in enumerate(sources, start=1):
         if isinstance(source, tuple):
             images.append(source)
             continue
@@ -314,7 +318,8 @@ async def read_image_sources(sources: list[ImageSource]) -> list[ImageInput]:
                 raise HTTPException(status_code=400, detail={"error": "image file is empty"})
             images.append((image_data, source.filename or "image.png", source.content_type or "image/png"))
             continue
-        images.append(await run_in_threadpool(_download_image_url, source))
+        fallback_name = f"image_{index}" if number_data_urls else "image_url"
+        images.append(await run_in_threadpool(_download_image_url, source, fallback_name))
     if not images:
         raise HTTPException(status_code=400, detail={"error": "image file or image_url is required"})
     return images

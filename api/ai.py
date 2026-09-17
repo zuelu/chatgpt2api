@@ -161,9 +161,10 @@ def create_router() -> APIRouter:
         model = str(payload["model"])
         call = LoggedCall(identity, "/v1/images/edits", model, "图生图", request_text=prompt)
         await filter_or_log(call, prompt)
-        payload["images"] = await read_image_sources(image_sources)
+        is_json_request = request.headers.get("content-type", "").split(";", 1)[0].strip().lower() == "application/json"
+        payload["images"] = await read_image_sources(image_sources, number_data_urls=is_json_request)
         if mask_sources:
-            payload["mask"] = await read_image_sources(mask_sources)
+            payload["mask"] = await read_image_sources(mask_sources, number_data_urls=is_json_request)
         payload["base_url"] = resolve_image_base_url(request)
         return await call.run(openai_v1_image_edit.handle, payload)
 
