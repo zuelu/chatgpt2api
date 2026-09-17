@@ -92,7 +92,7 @@ bun run dev
 Cập nhật lên phiên bản mới sau này:
 
 ```bash
-docker pull ghcr.io/zuelu/chatgpt2api:latest
+docker pull ghcr.io/zuelu/chatgpt2api-maintained:latest
 docker-compose down
 docker-compose up -d
 

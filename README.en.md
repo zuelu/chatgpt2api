@@ -92,7 +92,7 @@ bun run dev
 Upgrading to a new version later:
 
 ```bash
-docker pull ghcr.io/zuelu/chatgpt2api:latest
+docker pull ghcr.io/zuelu/chatgpt2api-maintained:latest
 docker-compose down
 docker-compose up -d
 

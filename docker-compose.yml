@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/zuelu/chatgpt2api:latest
+    image: ghcr.io/zuelu/chatgpt2api-maintained:latest
     container_name: chatgpt2api
     restart: unless-stopped
     ports:
