@@ -2,6 +2,8 @@
 
 <h1 align="center">ChatGPT2API</h1>
 
+> Maintained by `zuelu` from the original `basketikun/chatgpt2api` v1.8.0 baseline. See [UPSTREAM.md](UPSTREAM.md) for source and maintenance details.
+
 
 <p align="center">ChatGPT2API mainly reverse-engineers and wraps ChatGPT's official website capabilities, providing an OpenAI-compatible image API / proxy for ChatGPT image generation, image editing, and multi-image composite editing scenarios, and integrates an online drawing board, account pool management, multiple account import methods, and Docker self-hosted deployment.</p>
 
@@ -36,7 +38,7 @@
 ### Run with Docker
 
 ```bash
-git clone git@github.com:basketikun/chatgpt2api.git
+git clone git@github.com:zuelu/chatgpt2api.git
 cd chatgpt2api
 docker compose up -d
 ```
@@ -73,7 +75,7 @@ You can adjust the port and proxy runtime parameters in `.env`, or manually save
 Start the backend:
 
 ```bash
-git clone git@github.com:basketikun/chatgpt2api.git
+git clone git@github.com:zuelu/chatgpt2api.git
 cd chatgpt2api
 uv sync
 uv run main.py
@@ -90,7 +92,7 @@ bun run dev
 Upgrading to a new version later:
 
 ```bash
-docker pull ghcr.io/basketikun/chatgpt2api:latest
+docker pull ghcr.io/zuelu/chatgpt2api:latest
 docker-compose down
 docker-compose up -d
 
@@ -368,10 +370,10 @@ Learn AI on LinuxDO: [LinuxDO](https://linux.do)
 
 Thanks to all the developers who have contributed to this project:
 
-<a href="https://github.com/basketikun/chatgpt2api/graphs/contributors">
-  <img alt="Contributors" src="https://contrib.rocks/image?repo=basketikun/chatgpt2api" />
+<a href="https://github.com/zuelu/chatgpt2api/graphs/contributors">
+  <img alt="Contributors" src="https://contrib.rocks/image?repo=zuelu/chatgpt2api" />
 </a>
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=basketikun/chatgpt2api&type=date&legend=top-left)](https://www.star-history.com/?repos=basketikun%2Fchatgpt2api&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/chart?repos=zuelu/chatgpt2api&type=date&legend=top-left)](https://www.star-history.com/?repos=zuelu%2Fchatgpt2api&type=date&legend=top-left)
