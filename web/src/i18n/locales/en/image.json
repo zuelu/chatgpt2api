@@ -16,7 +16,8 @@
       "ratioLabel": "Aspect ratio",
       "countLabel": "Number of images",
       "imageUnit_one": "{{count}} image",
-      "imageUnit_other": "{{count}} images"
+      "imageUnit_other": "{{count}} images",
+      "codexResolutionHint": "2K and 4K are available only through the Codex path and require a Plus, Team, or Pro account. The web path lets the upstream service choose resolution; you can set only the aspect ratio, with output around 1.5 MP."
     },
     "referenceImage": {
       "previewLabel": "Preview reference image {{name}}",
@@ -25,7 +26,9 @@
     },
     "placeholder": {
       "editMode": "Describe how you'd like to modify the reference image",
-      "generateMode": "Describe the image you want to generate, or paste an image directly"
+      "generateMode": "Describe the image you want to generate, or paste an image directly",
+      "editSelected": "Describe the change, for example: replace the selected area with a red hat",
+      "editNoSource": "Choose an image first, then describe the change"
     },
     "dropOverlay": "Release to upload reference image",
     "actions": {
@@ -39,6 +42,22 @@
     },
     "activeTasks": {
       "suffix": "in progress"
+    },
+    "mode": {
+      "generate": "Create",
+      "edit": "Edit"
+    },
+    "editSource": {
+      "changeAnother": "Choose another",
+      "remove": "Remove",
+      "choose": "Choose image",
+      "alt": "Image to edit",
+      "selected": "Image selected for editing",
+      "selectionSummary": "{{selection}} · {{count}} annotations",
+      "hasSelection": "Selection added",
+      "noSelection": "No area selected",
+      "change": "Change image",
+      "openEditor": "Open editor"
     }
   },
   "results": {
@@ -146,7 +165,8 @@
       "generationTimeoutFallback": "Image generation timed out",
       "continuedWaiting_one": "Continued waiting for {{count}} second",
       "continuedWaiting_other": "Continued waiting for {{count}} seconds",
-      "retryPollFailed": "Failed to resume polling"
+      "retryPollFailed": "Failed to resume polling",
+      "editorOpened": "The editor is open. Annotate or select the area you want to change."
     },
     "turnStatus": {
       "someImagesFailed_one": "{{count}} image failed to generate",
@@ -154,7 +174,8 @@
     },
     "turnError": {
       "resultsDeleted": "Generated result deleted"
-    }
+    },
+    "annotationPromptHeader": "Annotated locations in the image:"
   },
   "errors": {
     "readReferenceImageFailed": "Failed to read reference image",
@@ -162,5 +183,62 @@
     "noImageData": "No image data returned",
     "generationFailed": "Generation failed",
     "taskNotRecoverable": "Page refreshed or task interrupted; no recoverable task ID found"
+  },
+  "sourcePicker": {
+    "title": "Choose an image to edit",
+    "tabs": {
+      "history": "Conversation history",
+      "gallery": "Image library"
+    },
+    "upload": "Upload local image",
+    "retry": "Retry",
+    "emptyHistory": "No generated images yet. Create one first or upload a local image.",
+    "emptyGallery": "The image library is empty",
+    "selectHistory": "Select history image {{name}}",
+    "historyAlt": "History image {{name}}",
+    "selectGallery": "Select library image {{name}}",
+    "galleryAlt": "Library image",
+    "errors": {
+      "loadFailed": "Failed to load image (HTTP {{status}})",
+      "readFailed": "Failed to read image",
+      "galleryFailed": "Failed to load image library"
+    }
+  },
+  "editor": {
+    "title": "Edit image",
+    "brush": "Brush",
+    "imageAlt": "Image to edit",
+    "emptyHint": "Choose a tool to annotate or select an area, or describe the change directly",
+    "promptPlaceholder": "Describe the change",
+    "tools": {
+      "comment": {
+        "label": "Annotate",
+        "hint": "Click the image to add an annotation"
+      },
+      "erase": {
+        "label": "Erase",
+        "hint": "Brush over the area you want removed"
+      },
+      "lasso": {
+        "label": "Lasso",
+        "hint": "Circle the area you want to change"
+      }
+    },
+    "actions": {
+      "close": "Close editor",
+      "brushSize": "Brush size",
+      "send": "Send",
+      "exitTool": "Exit current tool",
+      "undo": "Undo",
+      "redo": "Redo",
+      "clear": "Clear",
+      "submit": "Submit edit"
+    },
+    "annotation": {
+      "removeTitle": "{{text}} (click to remove)",
+      "placeholder": "What should change here?",
+      "confirm": "Confirm",
+      "count": "{{count}} annotations"
+    }
   }
 }

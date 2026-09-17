@@ -485,7 +485,14 @@ export async function generateImage(prompt: string, model?: ImageModel, size?: s
   );
 }
 
-export async function editImage(files: File | File[], prompt: string, model?: ImageModel, size?: string, quality = "auto") {
+export async function editImage(
+  files: File | File[],
+  prompt: string,
+  model?: ImageModel,
+  size?: string,
+  quality = "auto",
+  masks?: File | File[] | null,
+) {
   const formData = new FormData();
   const uploadFiles = Array.isArray(files) ? files : [files];
 
@@ -501,6 +508,12 @@ export async function editImage(files: File | File[], prompt: string, model?: Im
   }
   formData.append("quality", quality);
   formData.append("n", "1");
+
+  // 局部编辑：mask 中透明区域表示需要修改的地方
+  const maskFiles = masks ? (Array.isArray(masks) ? masks : [masks]) : [];
+  maskFiles.forEach((file) => {
+    formData.append("mask", file);
+  });
 
   return httpRequest<ImageResponse>(
     "/v1/images/edits",
@@ -531,6 +544,7 @@ export async function createImageEditTask(
   model?: ImageModel,
   size?: string,
   quality = "auto",
+  masks?: File | File[] | null,
 ) {
   const formData = new FormData();
   const uploadFiles = Array.isArray(files) ? files : [files];
@@ -547,6 +561,12 @@ export async function createImageEditTask(
     formData.append("size", size);
   }
   formData.append("quality", quality);
+
+  // 局部编辑：mask 中透明区域表示需要修改的地方
+  const maskFiles = masks ? (Array.isArray(masks) ? masks : [masks]) : [];
+  maskFiles.forEach((file) => {
+    formData.append("mask", file);
+  });
 
   return httpRequest<ImageTask>("/api/image-tasks/edits", {
     method: "POST",

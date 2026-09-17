@@ -14,7 +14,8 @@
       "sizeLabel": "尺寸",
       "ratioLabel": "宽高比",
       "countLabel": "生成数量",
-      "imageUnit": "{{count}} 张"
+      "imageUnit": "{{count}} 张",
+      "codexResolutionHint": "2K / 4K 仅在 Codex 链路可用（需要 Plus、Team 或 Pro 账号）。网页链路由上游决定分辨率，只能指定比例，实际输出约 1.5MP。"
     },
     "referenceImage": {
       "previewLabel": "预览参考图 {{name}}",
@@ -23,7 +24,9 @@
     },
     "placeholder": {
       "editMode": "描述你希望如何修改参考图",
-      "generateMode": "输入你想要生成的画面，也可直接粘贴图片"
+      "generateMode": "输入你想要生成的画面，也可直接粘贴图片",
+      "editSelected": "描述你想怎么改，例如：把圈出来的部分换成一顶红色帽子",
+      "editNoSource": "先选一张图片，再描述要改什么"
     },
     "dropOverlay": "松开以上传参考图",
     "actions": {
@@ -37,6 +40,22 @@
     },
     "activeTasks": {
       "suffix": "个任务处理中"
+    },
+    "mode": {
+      "generate": "创作",
+      "edit": "编辑"
+    },
+    "editSource": {
+      "changeAnother": "换一张",
+      "remove": "移除",
+      "choose": "选择图片",
+      "alt": "待编辑图片",
+      "selected": "已选择待编辑的图片",
+      "selectionSummary": "{{selection}} · {{count}} 条标注",
+      "hasSelection": "已有选区",
+      "noSelection": "未圈选区域",
+      "change": "换图",
+      "openEditor": "打开编辑器"
     }
   },
   "results": {
@@ -141,14 +160,16 @@
       "missingReferenceForEdit": "未找到可用于继续编辑的参考图",
       "generationTimeoutFallback": "生图超时",
       "continuedWaiting": "已继续等待 {{count}} 秒",
-      "retryPollFailed": "续轮询失败"
+      "retryPollFailed": "续轮询失败",
+      "editorOpened": "已打开编辑器，可以标注或圈出要修改的区域"
     },
     "turnStatus": {
       "someImagesFailed": "其中 {{count}} 张未成功生成"
     },
     "turnError": {
       "resultsDeleted": "生成结果已删除"
-    }
+    },
+    "annotationPromptHeader": "图中已标注的位置："
   },
   "errors": {
     "readReferenceImageFailed": "读取参考图失败",
@@ -156,5 +177,62 @@
     "noImageData": "未返回图片数据",
     "generationFailed": "生成失败",
     "taskNotRecoverable": "页面刷新或任务中断，未找到可恢复的任务 ID"
+  },
+  "sourcePicker": {
+    "title": "选择要编辑的图片",
+    "tabs": {
+      "history": "历史对话",
+      "gallery": "图片库"
+    },
+    "upload": "上传本地图片",
+    "retry": "重试",
+    "emptyHistory": "还没有生成过图片，先在创作里生成几张，或直接上传本地图片",
+    "emptyGallery": "图片库里还没有图片",
+    "selectHistory": "选择历史图片 {{name}}",
+    "historyAlt": "历史图片 {{name}}",
+    "selectGallery": "选择图库图片 {{name}}",
+    "galleryAlt": "图库图片",
+    "errors": {
+      "loadFailed": "加载图片失败（HTTP {{status}}）",
+      "readFailed": "读取图片失败",
+      "galleryFailed": "加载图库失败"
+    }
+  },
+  "editor": {
+    "title": "编辑图片",
+    "brush": "笔刷",
+    "imageAlt": "待编辑图片",
+    "emptyHint": "选一个工具标注或圈选，也可以直接描述修改",
+    "promptPlaceholder": "描述修改",
+    "tools": {
+      "comment": {
+        "label": "标注",
+        "hint": "点击图片添加标注"
+      },
+      "erase": {
+        "label": "擦除",
+        "hint": "涂抹你想去掉的区域"
+      },
+      "lasso": {
+        "label": "套索",
+        "hint": "圈出你要修改的区域"
+      }
+    },
+    "actions": {
+      "close": "关闭编辑器",
+      "brushSize": "笔刷大小",
+      "send": "发送",
+      "exitTool": "退出当前工具",
+      "undo": "撤销",
+      "redo": "重做",
+      "clear": "清除",
+      "submit": "发送修改"
+    },
+    "annotation": {
+      "removeTitle": "{{text}}（点击删除）",
+      "placeholder": "这里要改成什么？",
+      "confirm": "确定",
+      "count": "{{count}} 条标注"
+    }
   }
 }

@@ -7,8 +7,10 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { ImageComposer } from "@/app/image/components/image-composer";
+import { ImageEditStudio, type StudioSelection } from "@/app/image/components/image-edit-studio";
 import { ImageResults, type ImageLightboxItem } from "@/app/image/components/image-results";
 import { ImageSidebar } from "@/app/image/components/image-sidebar";
+import { ImageSourcePicker, type PickedImage } from "@/app/image/components/image-source-picker";
 import { ImageLightbox } from "@/components/image-lightbox";
 import {
   Dialog,
@@ -478,6 +480,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [referenceImageFiles, setReferenceImageFiles] = useState<File[]>([]);
   const [referenceImages, setReferenceImages] = useState<StoredReferenceImage[]>([]);
+  const [imageMode, setImageMode] = useState<ImageConversationMode>("generate");
+  const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
+  const [isStudioOpen, setIsStudioOpen] = useState(false);
   const [conversations, setConversations] = useState<ImageConversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
@@ -1108,6 +1113,100 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     setReferenceImages((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   }, []);
 
+  // 全屏编辑器：把选区遮罩和标注挂到当前编辑的图上
+  const handleEditSelectionChange = useCallback((selection: StudioSelection) => {
+    setReferenceImages((prev) => {
+      if (prev.length === 0) {
+        return prev;
+      }
+      const first = prev[0];
+      const next: StoredReferenceImage = {
+        name: first.name,
+        type: first.type,
+        dataUrl: first.dataUrl,
+      };
+      if (selection.maskDataUrl) {
+        next.maskDataUrl = selection.maskDataUrl;
+      }
+      if (selection.annotations.length > 0) {
+        next.annotations = selection.annotations;
+      }
+      if (selection.annotatedDataUrl) {
+        next.annotatedDataUrl = selection.annotatedDataUrl;
+      }
+      return [next, ...prev.slice(1)];
+    });
+  }, []);
+
+  // 标注并进提示词：让模型知道第几号标注指的是哪一块
+  const buildEditPrompt = useCallback(
+    (turn: ImageTurn) => {
+      const annotations = turn.referenceImages[0]?.annotations ?? [];
+      if (annotations.length === 0) {
+        return turn.prompt;
+      }
+      const lines = annotations.map((item, index) => `${index + 1}. ${item.text}`);
+      return `${turn.prompt}\n\n${t("page.annotationPromptHeader")}\n${lines.join("\n")}`;
+    },
+    [t],
+  );
+
+  const handlePickEditSource = useCallback(async (picked: PickedImage) => {
+    try {
+      setImageMode("edit");
+      setReferenceImages([{ name: picked.name, type: picked.type, dataUrl: picked.dataUrl }]);
+      setReferenceImageFiles([dataUrlToFile(picked.dataUrl, picked.name, picked.type)]);
+      setImagePrompt("");
+      textareaRef.current?.focus();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t("errors.readResultImageFailed");
+      toast.error(message);
+    }
+  }, [t]);
+
+  const handleClearEditSource = useCallback(() => {
+    setReferenceImages([]);
+    setReferenceImageFiles([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, []);
+
+  // 切到「编辑」且还没选图时，直接把选图浮层弹出来
+  const handleImageModeChange = useCallback(
+    (mode: ImageConversationMode) => {
+      setImageMode(mode);
+      if (mode === "edit" && referenceImageFiles.length === 0) {
+        setIsSourcePickerOpen(true);
+      }
+    },
+    [referenceImageFiles.length],
+  );
+
+  // 编辑模式下上传的图片直接作为编辑源图，不再叠加为多张参考图
+  const handlePickEditSourceFromDevice = useCallback(
+    async (files: File[]) => {
+      if (files.length === 0) {
+        return;
+      }
+      const [file] = files;
+      try {
+        const dataUrl = await readFileAsDataUrl(file, t);
+        setImageMode("edit");
+        setReferenceImages([{ name: file.name, type: file.type || "image/png", dataUrl }]);
+        setReferenceImageFiles([file]);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+        textareaRef.current?.focus();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : t("errors.readResultImageFailed");
+        toast.error(message);
+      }
+    },
+    [t],
+  );
+
   const handleContinueEdit = useCallback(
     async (conversationId: string, image: StoredImage | StoredReferenceImage) => {
       try {
@@ -1124,11 +1223,12 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
         setSelectedConversationId(conversationId);
 
-        setReferenceImages((prev) => [...prev, nextReference.referenceImage]);
-        setReferenceImageFiles((prev) => [...prev, nextReference.file]);
+        setImageMode("edit");
+        setReferenceImages([nextReference.referenceImage]);
+        setReferenceImageFiles([nextReference.file]);
         setImagePrompt("");
-        textareaRef.current?.focus();
-        toast.success(t("page.toasts.continueEditReady"));
+        setIsStudioOpen(true);
+        toast.success(t("page.toasts.editorOpened"));
       } catch (error) {
         const message = error instanceof Error ? error.message : t("errors.readResultImageFailed");
         toast.error(message);
@@ -1234,18 +1334,32 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       try {
 
         const referenceFiles = activeTurn.referenceImages.map((image, index) =>
-          dataUrlToFile(image.dataUrl, image.name || `${activeTurn.id}-${index + 1}.png`, image.type),
+          dataUrlToFile(
+            image.annotatedDataUrl || image.dataUrl,
+            image.name || `${activeTurn.id}-${index + 1}.png`,
+            image.type,
+          ),
         );
+        // 局部编辑的选区遮罩：有 mask 就带上，没有则整图编辑
+        const maskFiles = activeTurn.referenceImages
+          .map((image, index) =>
+            image.maskDataUrl
+              ? dataUrlToFile(image.maskDataUrl, `mask-${activeTurn.id}-${index + 1}.png`, "image/png")
+              : null,
+          )
+          .filter((file): file is File => file !== null);
+        const maskPayload = maskFiles.length > 0 ? maskFiles : null;
         if (activeTurn.mode === "edit" && referenceFiles.length === 0) {
           throw new Error(t("page.toasts.missingReferenceForEdit"));
         }
 
         const pendingImages = activeTurn.images.filter((image) => image.status === "loading");
+        const editPrompt = buildEditPrompt(activeTurn);
         const submitted = await Promise.all(
           pendingImages.map((image) => {
             const taskId = image.taskId || image.id;
             return activeTurn.mode === "edit"
-              ? createImageEditTask(taskId, referenceFiles, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality)
+              ? createImageEditTask(taskId, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload)
               : createImageGenerationTask(taskId, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality);
           }),
         );
@@ -1297,7 +1411,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
               const resubmitted = await Promise.all(
                 missingImages.map((image) =>
                   activeTurn.mode === "edit"
-                    ? createImageEditTask(image.taskId || image.id, referenceFiles, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality)
+                    ? createImageEditTask(image.taskId || image.id, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload)
                     : createImageGenerationTask(image.taskId || image.id, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality),
                 ),
               );
@@ -1556,7 +1670,8 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       return;
     }
 
-    const effectiveImageMode: ImageConversationMode = referenceImageFiles.length > 0 ? "edit" : "generate";
+    const effectiveImageMode: ImageConversationMode =
+      imageMode === "edit" || referenceImageFiles.length > 0 ? "edit" : "generate";
 
     const targetConversation = selectedConversationId
       ? conversationsRef.current.find((conversation) => conversation.id === selectedConversationId) ?? null
@@ -1739,6 +1854,11 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             referenceImages={referenceImages}
             textareaRef={textareaRef}
             fileInputRef={fileInputRef}
+            imageMode={imageMode}
+            onImageModeChange={handleImageModeChange}
+            onOpenEditStudio={() => setIsStudioOpen(true)}
+            onOpenEditSourcePicker={() => setIsSourcePickerOpen(true)}
+            onClearEditSource={handleClearEditSource}
             onPromptChange={setImagePrompt}
             onImageCountChange={(value) => setImageCount(value ? clampImageCount(value) : "")}
             onImageRatioChange={setImageRatio}
@@ -1749,7 +1869,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             onImageModelChange={setImageModel}
             onSubmit={handleSubmit}
             onPickReferenceImage={() => fileInputRef.current?.click()}
-            onReferenceImageChange={handleReferenceImageChange}
+            onReferenceImageChange={
+              imageMode === "edit" ? handlePickEditSourceFromDevice : handleReferenceImageChange
+            }
             onRemoveReferenceImage={handleRemoveReferenceImage}
           />
         </div>
@@ -1761,6 +1883,40 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         open={lightboxOpen}
         onOpenChange={setLightboxOpen}
         onIndexChange={setLightboxIndex}
+      />
+
+      <ImageSourcePicker
+        open={isSourcePickerOpen}
+        onOpenChange={setIsSourcePickerOpen}
+        conversations={conversations}
+        onPick={(image) => {
+          void handlePickEditSource(image);
+        }}
+        onPickFromDevice={() => fileInputRef.current?.click()}
+      />
+
+      <ImageEditStudio
+        open={isStudioOpen && Boolean(referenceImages[0])}
+        onOpenChange={setIsStudioOpen}
+        imageUrl={referenceImages[0]?.dataUrl ?? ""}
+        title={t("editor.title")}
+        prompt={imagePrompt}
+        onPromptChange={setImagePrompt}
+        model={imageModel}
+        modelOptions={imageModels}
+        onModelChange={(value) => setImageModel(value as ImageModel)}
+        size={`${imageWidth || 1024}x${imageHeight || 1024}`}
+        quality={imageQuality}
+        initialSelection={{
+          maskDataUrl: referenceImages[0]?.maskDataUrl ?? null,
+          annotations: referenceImages[0]?.annotations ?? [],
+          annotatedDataUrl: referenceImages[0]?.annotatedDataUrl ?? null,
+        }}
+        onSelectionChange={handleEditSelectionChange}
+        onSubmit={async () => {
+          setIsStudioOpen(false);
+          await handleSubmit();
+        }}
       />
 
       {deleteConfirm ? (

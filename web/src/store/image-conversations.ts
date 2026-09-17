@@ -6,10 +6,23 @@ import type { ImageModel } from "@/lib/api";
 
 export type ImageConversationMode = "generate" | "edit";
 
+export type StoredReferenceAnnotation = {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+};
+
 export type StoredReferenceImage = {
   name: string;
   type: string;
   dataUrl: string;
+  /** 局部编辑的选区遮罩；涂抹/圈选区域为透明。缺省表示整图编辑 */
+  maskDataUrl?: string;
+  /** 图上的标注钉子，提交时并入提示词 */
+  annotations?: StoredReferenceAnnotation[];
+  /** 已把标注钉画进画面的版本，提交时优先用它 */
+  annotatedDataUrl?: string;
 };
 
 export type StoredImage = {
@@ -96,6 +109,19 @@ function normalizeReferenceImage(image: StoredReferenceImage): StoredReferenceIm
     name: image.name || "reference.png",
     type: image.type || "image/png",
     dataUrl: image.dataUrl,
+    maskDataUrl: typeof image.maskDataUrl === "string" && image.maskDataUrl ? image.maskDataUrl : undefined,
+    annotations: Array.isArray(image.annotations)
+      ? image.annotations
+          .filter((item) => item && typeof item.text === "string" && item.text.trim())
+          .map((item) => ({
+            id: String(item.id || `${item.x}-${item.y}`),
+            x: Number(item.x) || 0,
+            y: Number(item.y) || 0,
+            text: String(item.text).trim(),
+          }))
+      : undefined,
+    annotatedDataUrl:
+      typeof image.annotatedDataUrl === "string" && image.annotatedDataUrl ? image.annotatedDataUrl : undefined,
   };
 }
 

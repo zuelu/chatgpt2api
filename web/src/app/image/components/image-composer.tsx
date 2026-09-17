@@ -1,5 +1,5 @@
 "use client";
-import { ArrowUp, ChevronDown, ImagePlus, Info, LoaderCircle, RectangleHorizontal, RectangleVertical, Square, X } from "lucide-react";
+import { ArrowUp, ChevronDown, ImagePlus, Info, LoaderCircle, Pencil, RectangleHorizontal, RectangleVertical, Sparkles, Square, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type RefObject } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import type { ImageModel } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { ImageConversationMode } from "@/store/image-conversations";
 
 type ImageComposerProps = {
   prompt: string;
@@ -24,9 +25,19 @@ type ImageComposerProps = {
   imageModels: ImageModel[];
   availableQuota: string;
   activeTaskCount: number;
-  referenceImages: Array<{ name: string; dataUrl: string }>;
+  referenceImages: Array<{
+    name: string;
+    dataUrl: string;
+    maskDataUrl?: string;
+    annotations?: Array<{ id: string; x: number; y: number; text: string }>;
+  }>;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   fileInputRef: RefObject<HTMLInputElement | null>;
+  imageMode: ImageConversationMode;
+  onImageModeChange: (mode: ImageConversationMode) => void;
+  onOpenEditStudio: () => void;
+  onOpenEditSourcePicker: () => void;
+  onClearEditSource: () => void;
   onPromptChange: (value: string) => void;
   onImageCountChange: (value: string) => void;
   onImageRatioChange: (value: string) => void;
@@ -99,6 +110,11 @@ export function ImageComposer({
   referenceImages,
   textareaRef,
   fileInputRef,
+  imageMode,
+  onImageModeChange,
+  onOpenEditStudio,
+  onOpenEditSourcePicker,
+  onClearEditSource,
   onPromptChange,
   onImageCountChange,
   onImageRatioChange,
@@ -134,6 +150,8 @@ export function ImageComposer({
   const imageSizeLabel = t("composer.sizeSummary", { quality: qualityLabel, ratio: ratioLabel, count: Number(imageCount) || 1 });
   const selectedModelLabel = modelOptions.find((option) => option.value === imageModel)?.label || imageModel;
   const isCodexModel = imageModel.toLowerCase().includes("codex");
+  const isEditMode = imageMode === "edit";
+  const editSourceImage = isEditMode ? referenceImages[0] ?? null : null;
 
   useEffect(() => {
     if (!isSizeMenuOpen) {
@@ -225,7 +243,106 @@ export function ImageComposer({
           }}
         />
 
-        {referenceImages.length > 0 ? (
+        <div className="mb-2 flex flex-wrap items-center gap-2 px-1 sm:mb-3">
+          <div className="inline-flex rounded-full bg-stone-100 p-1 dark:bg-white/10">
+            <button
+              type="button"
+              onClick={() => onImageModeChange("generate")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-[13px]",
+                !isEditMode
+                  ? "bg-white text-stone-950 shadow-sm dark:bg-stone-900 dark:text-white"
+                  : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100",
+              )}
+            >
+              <Sparkles className="size-3.5" />
+              {t("composer.mode.generate")}
+            </button>
+            <button
+              type="button"
+              onClick={() => onImageModeChange("edit")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-[13px]",
+                isEditMode
+                  ? "bg-white text-stone-950 shadow-sm dark:bg-stone-900 dark:text-white"
+                  : "text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100",
+              )}
+            >
+              <Pencil className="size-3.5" />
+              {t("composer.mode.edit")}
+            </button>
+          </div>
+
+          {isEditMode && editSourceImage ? (
+            <>
+              <button
+                type="button"
+                onClick={onOpenEditSourcePicker}
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 dark:border-white/10 dark:bg-stone-900 dark:text-stone-200"
+              >
+                <ImagePlus className="size-3.5" />
+                {t("composer.editSource.changeAnother")}
+              </button>
+              <button
+                type="button"
+                onClick={onClearEditSource}
+                className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 dark:border-white/10 dark:bg-stone-900 dark:text-stone-200"
+              >
+                <Trash2 className="size-3.5" />
+                {t("composer.editSource.remove")}
+              </button>
+            </>
+          ) : isEditMode ? (
+            // 选图浮层关掉之后，还能从这里再打开
+            <button
+              type="button"
+              onClick={onOpenEditSourcePicker}
+              className="inline-flex items-center gap-1.5 rounded-full bg-stone-950 px-3.5 py-1.5 text-xs font-semibold text-white transition hover:bg-stone-800"
+            >
+              <ImagePlus className="size-3.5" />
+              {t("composer.editSource.choose")}
+            </button>
+          ) : null}
+        </div>
+
+        {isEditMode && editSourceImage ? (
+            <div className="mb-3 flex items-center gap-3 rounded-[20px] border border-stone-200 bg-stone-50/80 p-2 pr-2 dark:border-white/10 dark:bg-white/5">
+              <img
+                src={editSourceImage.dataUrl}
+                alt={t("composer.editSource.alt")}
+                className="size-14 shrink-0 rounded-2xl object-cover"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-stone-800 dark:text-stone-100">
+                  {t("composer.editSource.selected")}
+                </p>
+                <p className="truncate text-[11px] text-stone-500 dark:text-stone-400">
+                  {t("composer.editSource.selectionSummary", {
+                    selection: editSourceImage.maskDataUrl
+                      ? t("composer.editSource.hasSelection")
+                      : t("composer.editSource.noSelection"),
+                    count: editSourceImage.annotations?.length ?? 0,
+                  })}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onOpenEditSourcePicker}
+                className="shrink-0 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700 transition hover:border-stone-300 dark:border-white/10 dark:bg-stone-900 dark:text-stone-200"
+              >
+                {t("composer.editSource.change")}
+              </button>
+              <button
+                type="button"
+                onClick={onOpenEditStudio}
+                className="shrink-0 rounded-full bg-stone-950 px-3.5 py-1.5 text-xs font-medium text-white transition hover:bg-stone-800 dark:bg-white dark:text-stone-950"
+              >
+                {t("composer.editSource.openEditor")}
+              </button>
+            </div>
+        ) : null}
+
+        {!isEditMode && referenceImages.length > 0 ? (
           <div className="mb-2 flex gap-2 overflow-x-auto px-1 pb-1 sm:mb-3 sm:flex-wrap sm:overflow-visible sm:pb-0">
             {referenceImages.map((image, index) => (
               <div key={`${image.name}-${index}`} className="relative size-14 shrink-0 sm:size-16">
@@ -289,9 +406,13 @@ export function ImageComposer({
               onChange={(event) => onPromptChange(event.target.value)}
               onPaste={handleTextareaPaste}
               placeholder={
-                referenceImages.length > 0
-                  ? t("composer.placeholder.editMode")
-                  : t("composer.placeholder.generateMode")
+                isEditMode
+                  ? editSourceImage
+                    ? t("composer.placeholder.editSelected")
+                    : t("composer.placeholder.editNoSource")
+                  : referenceImages.length > 0
+                    ? t("composer.placeholder.editMode")
+                    : t("composer.placeholder.generateMode")
               }
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
@@ -313,16 +434,18 @@ export function ImageComposer({
             <div className="rounded-b-[24px] border-t border-stone-100 bg-white px-3 pb-3 pt-2 dark:border-white/10 dark:bg-stone-950/95 sm:absolute sm:inset-x-0 sm:bottom-0 sm:rounded-b-none sm:border-t-0 sm:bg-gradient-to-t sm:from-white sm:via-white/95 sm:to-transparent sm:px-6 sm:pb-4 sm:pt-6 sm:dark:from-stone-950 sm:dark:via-stone-950/95 sm:dark:to-stone-950/0" onClick={(event) => event.stopPropagation()}>
               <div className="flex items-end justify-between gap-2 sm:gap-3">
                 <div className="hide-scrollbar flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:pb-0">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-9 shrink-0 rounded-full border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-none sm:h-10 sm:px-4 sm:text-sm"
-                    onClick={onPickReferenceImage}
-                    aria-label={referenceImages.length > 0 ? t("composer.actions.addReference") : t("composer.actions.upload")}
-                  >
-                    <ImagePlus className="size-3.5 sm:size-4" />
-                    <span className="hidden sm:inline">{referenceImages.length > 0 ? t("composer.actions.addReference") : t("composer.actions.upload")}</span>
-                  </Button>
+                  {!isEditMode ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-9 shrink-0 rounded-full border-stone-200 bg-white px-3 text-xs font-medium text-stone-700 shadow-none sm:h-10 sm:px-4 sm:text-sm"
+                      onClick={onPickReferenceImage}
+                      aria-label={referenceImages.length > 0 ? t("composer.actions.addReference") : t("composer.actions.upload")}
+                    >
+                      <ImagePlus className="size-3.5 sm:size-4" />
+                      <span className="hidden sm:inline">{referenceImages.length > 0 ? t("composer.actions.addReference") : t("composer.actions.upload")}</span>
+                    </Button>
+                  ) : null}
                   <div className="shrink-0 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-600 sm:px-3 sm:py-2 sm:text-xs">
                     <span className="hidden sm:inline">{t("composer.quota.label")} </span>{availableQuota}
                   </div>
@@ -491,6 +614,11 @@ export function ImageComposer({
                               );
                             })}
                           </div>
+                          {!isCodexModel ? (
+                            <p className="mt-2 text-[11px] leading-relaxed text-stone-400">
+                              {t("composer.sizeMenu.codexResolutionHint")}
+                            </p>
+                          ) : null}
                         </div>
                         <div className="border-t border-stone-100 pt-3">
                           <div className="mb-2 text-sm font-medium text-stone-900">{t("composer.sizeMenu.countLabel")}</div>
@@ -532,9 +660,9 @@ export function ImageComposer({
                 <button
                   type="button"
                   onClick={() => void onSubmit()}
-                  disabled={!prompt.trim()}
+                  disabled={!prompt.trim() || (isEditMode && !editSourceImage)}
                   className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 sm:size-11"
-                  aria-label={referenceImages.length > 0 ? t("composer.actions.editImage") : t("composer.actions.generateImage")}
+                  aria-label={isEditMode || referenceImages.length > 0 ? t("composer.actions.editImage") : t("composer.actions.generateImage")}
                 >
                   <ArrowUp className="size-3.5 sm:size-4" />
                 </button>

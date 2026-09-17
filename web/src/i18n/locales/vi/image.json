@@ -14,7 +14,8 @@
       "sizeLabel": "Kích thước",
       "ratioLabel": "Tỷ lệ khung hình",
       "countLabel": "Số lượng ảnh tạo",
-      "imageUnit": "{{count}} ảnh"
+      "imageUnit": "{{count}} ảnh",
+      "codexResolutionHint": "2K và 4K chỉ dùng được qua luồng Codex và cần tài khoản Plus, Team hoặc Pro. Với luồng web, dịch vụ upstream quyết định độ phân giải; bạn chỉ có thể chọn tỷ lệ, đầu ra khoảng 1,5 MP."
     },
     "referenceImage": {
       "previewLabel": "Xem trước ảnh tham chiếu {{name}}",
@@ -23,7 +24,9 @@
     },
     "placeholder": {
       "editMode": "Mô tả cách bạn muốn chỉnh sửa ảnh tham chiếu",
-      "generateMode": "Nhập mô tả hình ảnh bạn muốn tạo, hoặc dán ảnh trực tiếp"
+      "generateMode": "Nhập mô tả hình ảnh bạn muốn tạo, hoặc dán ảnh trực tiếp",
+      "editSelected": "Mô tả thay đổi, ví dụ: thay vùng đã chọn bằng một chiếc mũ đỏ",
+      "editNoSource": "Hãy chọn một ảnh trước rồi mô tả thay đổi"
     },
     "dropOverlay": "Thả để tải lên ảnh tham chiếu",
     "actions": {
@@ -37,6 +40,22 @@
     },
     "activeTasks": {
       "suffix": "đang xử lý"
+    },
+    "mode": {
+      "generate": "Sáng tạo",
+      "edit": "Chỉnh sửa"
+    },
+    "editSource": {
+      "changeAnother": "Chọn ảnh khác",
+      "remove": "Xóa",
+      "choose": "Chọn ảnh",
+      "alt": "Ảnh cần chỉnh sửa",
+      "selected": "Đã chọn ảnh để chỉnh sửa",
+      "selectionSummary": "{{selection}} · {{count}} chú thích",
+      "hasSelection": "Đã có vùng chọn",
+      "noSelection": "Chưa chọn vùng",
+      "change": "Đổi ảnh",
+      "openEditor": "Mở trình chỉnh sửa"
     }
   },
   "results": {
@@ -141,14 +160,16 @@
       "missingReferenceForEdit": "Không tìm thấy ảnh tham chiếu để tiếp tục chỉnh sửa",
       "generationTimeoutFallback": "Tạo ảnh quá thời gian chờ",
       "continuedWaiting": "Đã tiếp tục chờ {{count}} giây",
-      "retryPollFailed": "Tiếp tục theo dõi tiến trình thất bại"
+      "retryPollFailed": "Tiếp tục theo dõi tiến trình thất bại",
+      "editorOpened": "Trình chỉnh sửa đã mở. Hãy chú thích hoặc chọn vùng cần thay đổi."
     },
     "turnStatus": {
       "someImagesFailed": "{{count}} ảnh chưa tạo thành công"
     },
     "turnError": {
       "resultsDeleted": "Đã xóa kết quả tạo ảnh"
-    }
+    },
+    "annotationPromptHeader": "Các vị trí đã chú thích trong ảnh:"
   },
   "errors": {
     "readReferenceImageFailed": "Đọc ảnh tham chiếu thất bại",
@@ -156,5 +177,62 @@
     "noImageData": "Không nhận được dữ liệu ảnh",
     "generationFailed": "Tạo thất bại",
     "taskNotRecoverable": "Trang đã tải lại hoặc tác vụ bị gián đoạn, không tìm thấy ID tác vụ để khôi phục"
+  },
+  "sourcePicker": {
+    "title": "Chọn ảnh cần chỉnh sửa",
+    "tabs": {
+      "history": "Lịch sử hội thoại",
+      "gallery": "Thư viện ảnh"
+    },
+    "upload": "Tải ảnh từ máy",
+    "retry": "Thử lại",
+    "emptyHistory": "Chưa có ảnh đã tạo. Hãy tạo một ảnh trước hoặc tải ảnh từ máy.",
+    "emptyGallery": "Thư viện ảnh đang trống",
+    "selectHistory": "Chọn ảnh lịch sử {{name}}",
+    "historyAlt": "Ảnh lịch sử {{name}}",
+    "selectGallery": "Chọn ảnh thư viện {{name}}",
+    "galleryAlt": "Ảnh trong thư viện",
+    "errors": {
+      "loadFailed": "Không tải được ảnh (HTTP {{status}})",
+      "readFailed": "Không đọc được ảnh",
+      "galleryFailed": "Không tải được thư viện ảnh"
+    }
+  },
+  "editor": {
+    "title": "Chỉnh sửa ảnh",
+    "brush": "Cọ",
+    "imageAlt": "Ảnh cần chỉnh sửa",
+    "emptyHint": "Chọn công cụ để chú thích hoặc khoanh vùng, hoặc mô tả thay đổi trực tiếp",
+    "promptPlaceholder": "Mô tả thay đổi",
+    "tools": {
+      "comment": {
+        "label": "Chú thích",
+        "hint": "Nhấp vào ảnh để thêm chú thích"
+      },
+      "erase": {
+        "label": "Xóa",
+        "hint": "Tô lên vùng bạn muốn loại bỏ"
+      },
+      "lasso": {
+        "label": "Khoanh vùng",
+        "hint": "Khoanh vùng bạn muốn thay đổi"
+      }
+    },
+    "actions": {
+      "close": "Đóng trình chỉnh sửa",
+      "brushSize": "Kích thước cọ",
+      "send": "Gửi",
+      "exitTool": "Thoát công cụ hiện tại",
+      "undo": "Hoàn tác",
+      "redo": "Làm lại",
+      "clear": "Xóa",
+      "submit": "Gửi chỉnh sửa"
+    },
+    "annotation": {
+      "removeTitle": "{{text}} (nhấp để xóa)",
+      "placeholder": "Bạn muốn thay đổi gì ở đây?",
+      "confirm": "Xác nhận",
+      "count": "{{count}} chú thích"
+    }
   }
 }
