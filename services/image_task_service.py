@@ -518,6 +518,7 @@ class ImageTaskService:
                 status="failed",
                 error=error_message,
                 account_email=account_email,
+                conversation_id=conversation_id,
             )
 
     def _log_call(

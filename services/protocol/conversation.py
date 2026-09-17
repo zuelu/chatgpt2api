@@ -878,8 +878,10 @@ def stream_image_outputs(
         "conversation_id": conversation_id,
         "file_ids": file_ids,
         "sediment_ids": sediment_ids,
+        "blocked": bool(last.get("blocked")),
         "tool_invoked": last.get("tool_invoked"),
         "turn_use_case": last.get("turn_use_case"),
+        "message_preview": message[:200],
     })
     if request.progress_callback:
         request.progress_callback("image_stream_resolve_start")
@@ -1494,29 +1496,38 @@ def _generate_single_image(
             "index": index,
         })
         backend = None
+        # 本次尝试的上游会话 ID，仅来自本轮 SSE 事件或异常，换账号重试时重新置空
+        last_conversation_id = ""
         try:
             backend = OpenAIBackendAPI(access_token=token)
             if request.progress_callback:
                 backend.progress_callback = request.progress_callback
             stream_fn = stream_codex_image_outputs if is_codex_image_model(request.model) else stream_image_outputs
             outputs: list[ImageOutput] = []
-            for output in stream_fn(backend, request, index, total):
-                if account_email and not output.account_email:
-                    output.account_email = account_email
-                if output.kind == "message" and request.message_as_error:
-                    raise ImageGenerationError(
-                        output.text or "Image generation was rejected by upstream policy.",
-                        status_code=400,
-                        error_type="invalid_request_error",
-                        code="content_policy_violation",
-                        account_email=account_email,
-                        conversation_id=output.conversation_id,
-                    )
-                if output.kind in {"message", "result"}:
+            try:
+                for output in stream_fn(backend, request, index, total):
+                    last_conversation_id = output.conversation_id or last_conversation_id
+                    if account_email and not output.account_email:
+                        output.account_email = account_email
+                    if output.kind == "message" and request.message_as_error:
+                        raise ImageGenerationError(
+                            output.text or "Image generation was rejected by upstream policy.",
+                            status_code=400,
+                            error_type="invalid_request_error",
+                            code="content_policy_violation",
+                            account_email=account_email,
+                            conversation_id=output.conversation_id,
+                        )
                     emitted_for_token = True
-                returned_message = output.kind == "message"
-                returned_result = returned_result or output.kind == "result"
-                outputs.append(output)
+                    returned_message = output.kind == "message"
+                    returned_result = returned_result or output.kind == "result"
+                    outputs.append(output)
+            except Exception as exc:
+                # 异常路径（内容政策拒绝、轮询超时等）会话 ID 只挂在异常上。
+                last_conversation_id = last_conversation_id or str(getattr(exc, "conversation_id", "") or "")
+                raise
+            finally:
+                _remove_image_conversation_later(backend, last_conversation_id, success=returned_result)
             if returned_message:
                 account_service.mark_image_result(token, False)
                 return outputs
@@ -1682,7 +1693,7 @@ def _generate_single_image(
                     })
                     time.sleep(wait_secs)
                     continue
-            raise ImageGenerationError(image_stream_error_message(last_error), account_email=account_email, conversation_id="") from exc
+            raise ImageGenerationError(image_stream_error_message(last_error), account_email=account_email, conversation_id=last_conversation_id) from exc
         finally:
             if backend is not None:
                 backend.close()

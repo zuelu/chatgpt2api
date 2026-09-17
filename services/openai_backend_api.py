@@ -96,7 +96,7 @@ CODEX_RESPONSES_INSTRUCTIONS = (
     "Return the generated image result."
 )
 
-# 内容政策违规错误关键词（上游拒绝生成图片的各种表述）
+# 内容政策违规错误关键词（上游拒绝生成图片的各种表述，均取自线上实际观察到的回复）
 _CONTENT_POLICY_KEYWORDS = (
     # 明确的内容政策违规
     "内容政策", "防护限制", "违反", "moderation", "policy", "blocked",
@@ -106,14 +106,21 @@ _CONTENT_POLICY_KEYWORDS = (
     "裸体", "裸露", "色情", "性内容", "未成年",
     # 通用拒绝
     "抱歉，我不能",
+    # 英文拒绝类（匹配前会把弯引号统一为直引号）
+    "i can't help",
+    # 英文敏感内容类
+    "nude", "topless", "unclothed", "sexually explicit",
 )
+
+# 上游英文回复常用弯引号（如 can’t），匹配前统一替换为直引号
+_APOSTROPHE_VARIANTS = str.maketrans({"’": "'", "‘": "'", "ʼ": "'"})
 
 
 def _is_content_policy_error(error_msg: str) -> bool:
     """检查错误消息是否为内容政策违规。"""
     if not error_msg:
         return False
-    msg_lower = error_msg.lower()
+    msg_lower = error_msg.lower().translate(_APOSTROPHE_VARIANTS)
     return any(keyword in msg_lower for keyword in _CONTENT_POLICY_KEYWORDS)
 
 
@@ -2385,9 +2392,8 @@ class OpenAIBackendAPI:
             "last_task_error": last_task_error if last_task_error else None,
         })
         exc = ImagePollTimeoutError(
-            f"ChatGPT 生图超时（已等待 {timeout_secs} 秒）。"
-            f"当前超时阈值可在 config.json 中调大 image_poll_timeout_secs，"
-            f"也可能是账号被限流或生图队列拥堵导致。"
+            f"生图超时（轮询阶段）：SSE 流已结束但未返回图片，轮询对话 {int(timeout_secs)} 秒仍未获取到图片结果。",
+            conversation_id or "",
         )
         if last_task_error:
             setattr(exc, "task_error", last_task_error)
@@ -2723,6 +2729,22 @@ class OpenAIBackendAPI:
             parent_message_id=parent_message_id,
         )
         self._report_progress("generating")
+        yield from self._iter_sse_payloads_capped(response, float(config.image_poll_timeout_secs))
+
+    def _iter_sse_payloads_capped(self, response: Any, hard_cap_secs: float) -> Iterator[str]:
+        """按墙钟硬上限消费图片 SSE 流，避免上游异常时长连接被无限挂起。
+
+        curl_cffi 在 stream=True + 标量 timeout 下不限制流式 body 的总读取时长，
+        上游未生成图片却保持连接时，读取会一直阻塞直到边缘重置（曾观测到单条流
+        挂起约 29.5 分钟才失败）。这里复用「图片轮询超时」作为硬上限：到点后关闭
+        底层连接以解除阻塞，并抛出明确错误，让任务快速失败而非长时间挂起。
+        """
+        deadline = time.monotonic() + hard_cap_secs
+        # 看门狗：SSE 读取可能阻塞在底层 curl 调用中，超时后关闭连接以强制解除阻塞
+        watchdog = threading.Timer(hard_cap_secs, response.close)
+        watchdog.daemon = True
+        watchdog.start()
+        timeout_message = f"生图中断（SSE 阶段）：上游 SSE 流 {int(hard_cap_secs)} 秒内未结束，已主动断开连接。"
         try:
             yield from self._iter_image_sse_payloads(response)
         finally:
