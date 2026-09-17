@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, Response
 
 from api import accounts, ai, image_tasks, invoices, system
 from api.errors import install_exception_handlers
-from api.support import resolve_web_asset
+from api.support import LocaleMiddleware, resolve_web_asset
 from services.config import config
 
 
@@ -31,6 +31,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.add_middleware(LocaleMiddleware)
+
     app.include_router(ai.create_router())
     app.include_router(accounts.create_router())
     app.include_router(invoices.create_router())

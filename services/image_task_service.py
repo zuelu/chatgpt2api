@@ -13,6 +13,7 @@ from services.config import DATA_DIR, config
 from services.content_filter import request_text
 from services.log_service import LOG_TYPE_CALL, log_service
 from services.protocol import openai_v1_image_edit, openai_v1_image_generations
+from utils.i18n import t
 
 TASK_STATUS_QUEUED = "queued"
 TASK_STATUS_RUNNING = "running"
