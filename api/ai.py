@@ -80,6 +80,19 @@ async def filter_or_log(call: LoggedCall, text: str) -> None:
 def create_router() -> APIRouter:
     router = APIRouter()
 
+    async def _generate_images_from_payload(
+            body: ImageGenerationRequest,
+            request: Request,
+            authorization: str | None,
+            endpoint: str,
+    ):
+        identity = require_identity(authorization)
+        payload = body.model_dump(mode="python")
+        payload["base_url"] = resolve_image_base_url(request)
+        call = LoggedCall(identity, endpoint, body.model, "文生图", request_text=body.prompt)
+        await filter_or_log(call, body.prompt)
+        return await call.run(openai_v1_image_generations.handle, payload)
+
     @router.get("/v1/models")
     async def list_models(authorization: str | None = Header(default=None)):
         require_identity(authorization)
@@ -94,12 +107,31 @@ def create_router() -> APIRouter:
             request: Request,
             authorization: str | None = Header(default=None),
     ):
-        identity = require_identity(authorization)
-        payload = body.model_dump(mode="python")
-        payload["base_url"] = resolve_image_base_url(request)
-        call = LoggedCall(identity, "/v1/images/generations", body.model, "文生图", request_text=body.prompt)
-        await filter_or_log(call, body.prompt)
-        return await call.run(openai_v1_image_generations.handle, payload)
+        return await _generate_images_from_payload(body, request, authorization, "/v1/images/generations")
+
+    @router.post("/images/generations")
+    async def generate_images_compat_root(
+            body: ImageGenerationRequest,
+            request: Request,
+            authorization: str | None = Header(default=None),
+    ):
+        return await _generate_images_from_payload(body, request, authorization, "/images/generations")
+
+    @router.post("/openai/images/generations")
+    async def generate_images_compat_openai(
+            body: ImageGenerationRequest,
+            request: Request,
+            authorization: str | None = Header(default=None),
+    ):
+        return await _generate_images_from_payload(body, request, authorization, "/openai/images/generations")
+
+    @router.post("/openai/v1/images/generations")
+    async def generate_images_compat_openai_v1(
+            body: ImageGenerationRequest,
+            request: Request,
+            authorization: str | None = Header(default=None),
+    ):
+        return await _generate_images_from_payload(body, request, authorization, "/openai/v1/images/generations")
 
     @router.post("/v1/images/edits")
     async def edit_images(

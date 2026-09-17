@@ -9,7 +9,7 @@ export function HeaderActions({ className, showGithubText = true }: { className?
     <div className={cn("flex items-center gap-2 sm:gap-3", className)}>
       <ThemeToggle />
       <a
-        href="https://github.com/basketikun/chatgpt2api"
+        href="https://github.com/zuelu/chatgpt2api"
         target="_blank"
         rel="noreferrer"
         className="inline-flex h-8 items-center justify-center gap-1.5 text-sm text-stone-500 transition hover:text-stone-900 dark:text-stone-300 dark:hover:text-white"

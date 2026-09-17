@@ -1,5 +1,7 @@
 <h1 align="center">ChatGPT2API</h1>
 
+> 本仓库由 `zuelu` 维护，基于原项目 `basketikun/chatgpt2api` 的 `v1.8.0` 建立，并纳入当前生产环境使用的定制修复。上游来源和维护基线见 [UPSTREAM.md](UPSTREAM.md)。
+
 
 <p align="center">ChatGPT2API 主要是对 ChatGPT 官网相关能力进行逆向整理与封装，提供面向 ChatGPT 图片生成、图片编辑、多图组图编辑场景的 OpenAI 兼容图片 API / 代理，并集成在线画图、号池管理、多种账号导入方式与 Docker 自托管部署能力。</p>
 
@@ -34,7 +36,7 @@
 ### Docker 运行
 
 ```bash
-git clone git@github.com:basketikun/chatgpt2api.git
+git clone git@github.com:zuelu/chatgpt2api.git
 cd chatgpt2api
 docker compose up -d
 ```
@@ -71,7 +73,7 @@ docker compose -f docker-compose.warp.yml up -d --build
 启动后端：
 
 ```bash
-git clone git@github.com:basketikun/chatgpt2api.git
+git clone git@github.com:zuelu/chatgpt2api.git
 cd chatgpt2api
 uv sync
 uv run main.py
@@ -88,7 +90,7 @@ bun run dev
 后续更新新版本：
 
 ```bash
-docker pull ghcr.io/basketikun/chatgpt2api:latest
+docker pull ghcr.io/zuelu/chatgpt2api:latest
 docker-compose down
 docker-compose up -d
 
@@ -366,10 +368,10 @@ curl http://localhost:8000/v1/responses \
 
 感谢所有为本项目做出贡献的开发者：
 
-<a href="https://github.com/basketikun/chatgpt2api/graphs/contributors">
-  <img alt="Contributors" src="https://contrib.rocks/image?repo=basketikun/chatgpt2api" />
+<a href="https://github.com/zuelu/chatgpt2api/graphs/contributors">
+  <img alt="Contributors" src="https://contrib.rocks/image?repo=zuelu/chatgpt2api" />
 </a>
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/chart?repos=basketikun/chatgpt2api&type=date&legend=top-left)](https://www.star-history.com/?repos=basketikun%2Fchatgpt2api&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/chart?repos=zuelu/chatgpt2api&type=date&legend=top-left)](https://www.star-history.com/?repos=zuelu%2Fchatgpt2api&type=date&legend=top-left)

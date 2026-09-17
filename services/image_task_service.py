@@ -237,7 +237,55 @@ class ImageTaskService:
                 daemon=True,
             )
             thread.start()
+            watchdog = threading.Thread(
+                target=self._watch_task_timeout,
+                args=(key, dict(identity), mode, _clean(payload.get("model"), "gpt-image-2"), time.time(), request_text(payload.get("prompt"))),
+                name=f"image-task-watch-{task_id[:12]}",
+                daemon=True,
+            )
+            watchdog.start()
         return _public_task(task)
+
+    def _task_hard_timeout_secs(self) -> float:
+        try:
+            poll_timeout = float(config.image_poll_timeout_secs)
+        except Exception:
+            poll_timeout = 600.0
+        try:
+            retry_timeout = float(getattr(config, "image_timeout_retry_secs", 0) or 0)
+        except Exception:
+            retry_timeout = 0.0
+        return max(360.0, min(1200.0, poll_timeout + retry_timeout + 120.0))
+
+    def _watch_task_timeout(
+        self,
+        key: str,
+        identity: dict[str, object],
+        mode: str,
+        model: str,
+        started: float,
+        request_preview: str,
+    ) -> None:
+        timeout_secs = self._task_hard_timeout_secs()
+        deadline = started + timeout_secs
+        while time.time() < deadline:
+            time.sleep(min(15.0, max(1.0, deadline - time.time())))
+            with self._lock:
+                task = self._tasks.get(key)
+                if task is None or task.get("status") in TERMINAL_STATUSES:
+                    return
+        message = f"图片任务超过服务端硬超时 {int(timeout_secs)} 秒仍未完成，已中断本地等待。请稍后重试或检查上游账号状态。"
+        self._update_task(key, status=TASK_STATUS_ERROR, error=message, data=[], duration_ms=int((time.time() - started) * 1000))
+        self._log_call(
+            identity,
+            mode,
+            model,
+            started,
+            "调用失败",
+            request_preview=request_preview,
+            status="failed",
+            error=message,
+        )
 
     def _run_task(
         self,
@@ -263,6 +311,7 @@ class ImageTaskService:
                 raise RuntimeError("image task returned streaming result unexpectedly")
             data = result.get("data")
             account_email = _clean(result.get("_account_email") or result.get("account_email"))
+            conversation_id = _clean(result.get("_conversation_id") or result.get("conversation_id"))
             if not isinstance(data, list) or not data:
                 upstream = _clean(result.get("message"))
                 if upstream:
@@ -275,7 +324,15 @@ class ImageTaskService:
                 raise error
             usage = result.get("usage")
             duration_ms = int((time.time() - started) * 1000)
-            self._update_task(key, status=TASK_STATUS_SUCCESS, data=data, usage=usage, error="", duration_ms=duration_ms)
+            self._update_task(
+                key,
+                status=TASK_STATUS_SUCCESS,
+                data=data,
+                usage=usage,
+                error="",
+                duration_ms=duration_ms,
+                **({"conversation_id": conversation_id} if conversation_id else {}),
+            )
             self._log_call(
                 identity,
                 mode,
@@ -285,6 +342,7 @@ class ImageTaskService:
                 request_preview=request_text(payload.get("prompt")),
                 urls=_collect_image_urls(data),
                 account_email=account_email,
+                conversation_id=conversation_id,
             )
         except Exception as exc:
             error_message = str(exc) or "image task failed"
@@ -319,6 +377,7 @@ class ImageTaskService:
         error: str = "",
         urls: list[str] | None = None,
         account_email: str = "",
+        conversation_id: str = "",
     ) -> None:
         endpoint = "/v1/images/edits" if mode == "edit" else "/v1/images/generations"
         summary_prefix = "图生图" if mode == "edit" else "文生图"
@@ -339,6 +398,8 @@ class ImageTaskService:
             detail["error"] = error
         if account_email:
             detail["account_email"] = account_email
+        if conversation_id:
+            detail["conversation_id"] = conversation_id
         if urls:
             detail["urls"] = list(dict.fromkeys(urls))
         try:
@@ -401,6 +462,9 @@ class ImageTaskService:
             error = _clean(item.get("error"))
             if error:
                 task["error"] = error
+            conversation_id = _clean(item.get("conversation_id"))
+            if conversation_id:
+                task["conversation_id"] = conversation_id
             tasks[_task_key(owner, task_id)] = task
         return tasks
 
