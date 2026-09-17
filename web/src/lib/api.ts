@@ -747,6 +747,13 @@ export async function deleteSystemLogs(ids: string[]) {
   });
 }
 
+export async function clearSystemLogs(type?: string) {
+  return httpRequest<{ removed: number }>("/api/logs/clear", {
+    method: "POST",
+    body: { type: type || "" },
+  });
+}
+
 export async function fetchUserKeys() {
   return httpRequest<{ items: UserKey[] }>("/api/auth/users");
 }

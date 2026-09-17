@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import itertools
+import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -27,6 +28,7 @@ class LogService:
     def __init__(self, path: Path):
         self.path = path
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.RLock()
 
     @staticmethod
     def _legacy_id(raw_line: str, line_number: int) -> str:
@@ -68,14 +70,16 @@ class LogService:
             "summary": summary,
             "detail": detail or data,
         }
-        with self.path.open("a", encoding="utf-8") as file:
-            file.write(self._serialize_item(item) + "\n")
+        with self._lock:
+            with self.path.open("a", encoding="utf-8") as file:
+                file.write(self._serialize_item(item) + "\n")
 
     def list(self, type: str = "", start_date: str = "", end_date: str = "", limit: int = 200) -> list[dict[str, Any]]:
-        if not self.path.exists():
-            return []
+        with self._lock:
+            if not self.path.exists():
+                return []
+            lines = self.path.read_text(encoding="utf-8").splitlines()
         items: list[dict[str, Any]] = []
-        lines = self.path.read_text(encoding="utf-8").splitlines()
         for line_number in range(len(lines) - 1, -1, -1):
             item = self._parse_line(lines[line_number], line_number)
             if item is None:
@@ -89,25 +93,58 @@ class LogService:
 
     def delete(self, ids: list[str]) -> dict[str, int]:
         target_ids = {str(item or "").strip() for item in ids if str(item or "").strip()}
-        if not self.path.exists() or not target_ids:
-            return {"removed": 0}
-        lines = self.path.read_text(encoding="utf-8").splitlines()
-        kept_lines: list[str] = []
-        removed = 0
-        for line_number, raw_line in enumerate(lines):
-            item = self._parse_line(raw_line, line_number)
-            if item is None:
-                kept_lines.append(raw_line)
-                continue
-            if str(item.get("id") or "") in target_ids:
-                removed += 1
-                continue
-            kept_lines.append(self._serialize_item(item))
-        content = "\n".join(kept_lines)
-        if content:
-            content += "\n"
-        self.path.write_text(content, encoding="utf-8")
-        return {"removed": removed}
+        with self._lock:
+            if not self.path.exists() or not target_ids:
+                return {"removed": 0}
+            lines = self.path.read_text(encoding="utf-8").splitlines()
+            kept_lines: list[str] = []
+            removed = 0
+            for line_number, raw_line in enumerate(lines):
+                item = self._parse_line(raw_line, line_number)
+                if item is None:
+                    kept_lines.append(raw_line)
+                    continue
+                if str(item.get("id") or "") in target_ids:
+                    removed += 1
+                    continue
+                kept_lines.append(self._serialize_item(item))
+            content = "\n".join(kept_lines)
+            if content:
+                content += "\n"
+            self.path.write_text(content, encoding="utf-8")
+            return {"removed": removed}
+
+    def clear(self, type: str = "") -> dict[str, int]:
+        target_type = str(type or "").strip()
+        with self._lock:
+            if not self.path.exists():
+                return {"removed": 0}
+            lines = self.path.read_text(encoding="utf-8").splitlines()
+            if not target_type:
+                removed = sum(
+                    1
+                    for line_number, raw_line in enumerate(lines)
+                    if self._parse_line(raw_line, line_number) is not None
+                )
+                self.path.write_text("", encoding="utf-8")
+                return {"removed": removed}
+
+            kept_lines: list[str] = []
+            removed = 0
+            for line_number, raw_line in enumerate(lines):
+                item = self._parse_line(raw_line, line_number)
+                if item is None:
+                    kept_lines.append(raw_line)
+                    continue
+                if str(item.get("type") or "") == target_type:
+                    removed += 1
+                    continue
+                kept_lines.append(self._serialize_item(item))
+            content = "\n".join(kept_lines)
+            if content:
+                content += "\n"
+            self.path.write_text(content, encoding="utf-8")
+            return {"removed": removed}
 
 
 log_service = LogService(DATA_DIR / "logs.jsonl")

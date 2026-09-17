@@ -27,7 +27,8 @@
     "selected": "已选 {{total}} 条",
     "refresh": "刷新",
     "clearSelection": "取消选择",
-    "deleteSelected": "删除所选"
+    "deleteSelected": "删除所选",
+    "clearType": "清空{{type}}"
   },
   "rowActions": {
     "viewDetail": "查看详情",
@@ -53,6 +54,15 @@
   "toasts": {
     "loadFailed": "加载日志失败",
     "deleteFailed": "删除日志失败",
-    "deleteSuccess": "已删除 {{count}} 条日志"
+    "deleteSuccess": "已删除 {{count}} 条日志",
+    "clearSuccess": "已清空 {{count}} 条{{type}}",
+    "clearFailed": "清空日志失败"
+  },
+  "clearDialog": {
+    "genericType": "日志",
+    "title": "清空{{type}}",
+    "description": "确认清空所有{{type}}吗？此操作将永久删除该分类下的全部日志，无法恢复。",
+    "cancel": "取消",
+    "confirm": "确认清空"
   }
 }

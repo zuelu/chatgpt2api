@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Literal
 from urllib.parse import quote
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
@@ -54,6 +55,12 @@ class ImageTagsRequest(BaseModel):
 
 class LogDeleteRequest(BaseModel):
     ids: list[str] = []
+
+
+class LogClearRequest(BaseModel):
+    type: Literal["", "call", "account"] = ""
+
+
 class BackupDeleteRequest(BaseModel):
     key: str = ""
 
@@ -142,6 +149,11 @@ def create_router(app_version: str) -> APIRouter:
     async def delete_logs(body: LogDeleteRequest, authorization: str | None = Header(default=None)):
         require_admin(authorization)
         return log_service.delete(body.ids)
+
+    @router.post("/api/logs/clear")
+    async def clear_logs(body: LogClearRequest, authorization: str | None = Header(default=None)):
+        require_admin(authorization)
+        return log_service.clear(type=body.type)
 
     @router.post("/api/proxy/test")
     async def test_proxy_endpoint(body: ProxyTestRequest, authorization: str | None = Header(default=None)):

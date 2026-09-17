@@ -27,7 +27,8 @@
     "selected": "Đã chọn {{total}} mục",
     "refresh": "Làm mới",
     "clearSelection": "Bỏ chọn",
-    "deleteSelected": "Xóa mục đã chọn"
+    "deleteSelected": "Xóa mục đã chọn",
+    "clearType": "Xóa toàn bộ {{type}}"
   },
   "rowActions": {
     "viewDetail": "Xem chi tiết",
@@ -53,6 +54,15 @@
   "toasts": {
     "loadFailed": "Tải nhật ký thất bại",
     "deleteFailed": "Xóa nhật ký thất bại",
-    "deleteSuccess": "Đã xóa {{count}} nhật ký"
+    "deleteSuccess": "Đã xóa {{count}} nhật ký",
+    "clearSuccess": "Đã xóa {{count}} mục {{type}}",
+    "clearFailed": "Không thể xóa nhật ký"
+  },
+  "clearDialog": {
+    "genericType": "nhật ký",
+    "title": "Xóa toàn bộ {{type}}",
+    "description": "Xóa toàn bộ {{type}}? Thao tác này sẽ xóa vĩnh viễn mọi nhật ký trong nhóm và không thể hoàn tác.",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận xóa"
   }
 }

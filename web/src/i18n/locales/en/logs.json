@@ -27,7 +27,8 @@
     "selected": "{{total}} selected",
     "refresh": "Refresh",
     "clearSelection": "Clear selection",
-    "deleteSelected": "Delete selected"
+    "deleteSelected": "Delete selected",
+    "clearType": "Clear {{type}}"
   },
   "rowActions": {
     "viewDetail": "View details",
@@ -55,6 +56,15 @@
     "loadFailed": "Failed to load logs",
     "deleteFailed": "Failed to delete logs",
     "deleteSuccess_one": "Deleted {{count}} log",
-    "deleteSuccess_other": "Deleted {{count}} logs"
+    "deleteSuccess_other": "Deleted {{count}} logs",
+    "clearSuccess": "Cleared {{count}} {{type}}",
+    "clearFailed": "Failed to clear logs"
+  },
+  "clearDialog": {
+    "genericType": "logs",
+    "title": "Clear {{type}}",
+    "description": "Clear all {{type}}? This permanently deletes every log in this category and cannot be undone.",
+    "cancel": "Cancel",
+    "confirm": "Confirm clear"
   }
 }

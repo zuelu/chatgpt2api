@@ -862,8 +862,8 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
           <Upload className="size-4" />
           {t("importDialog.triggerButton")}
         </Button>
-        <DialogContent showCloseButton={false} className="rounded-2xl p-6">
-          <DialogHeader className="gap-2">
+        <DialogContent showCloseButton={false} className="flex max-h-[85vh] w-[min(92vw,580px)] flex-col overflow-hidden rounded-2xl p-6">
+          <DialogHeader className="shrink-0 gap-2">
             <DialogTitle>
               {method === "menu"
                 ? t("importDialog.title.menu")
@@ -892,9 +892,11 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
             </DialogDescription>
           </DialogHeader>
 
-          {renderMethodBody()}
+          <div className="flex-1 overflow-y-auto py-1 pr-1">
+            {renderMethodBody()}
+          </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="shrink-0 border-t border-stone-100 pt-3">
             <Button
               variant="secondary"
               className="h-10 rounded-xl bg-stone-100 px-5 text-stone-700 hover:bg-stone-200"

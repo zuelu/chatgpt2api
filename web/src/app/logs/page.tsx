@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { deleteSystemLogs, fetchSystemLogs, type SystemLog } from "@/lib/api";
+import { clearSystemLogs, deleteSystemLogs, fetchSystemLogs, type SystemLog } from "@/lib/api";
 import { useAuthGuard } from "@/lib/use-auth-guard";
 
 const LogType = {
@@ -71,6 +71,8 @@ function LogsContent() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deletingItems, setDeletingItems] = useState<SystemLog[]>([]);
   const detailUrls = getUrls(detailLog);
@@ -83,6 +85,7 @@ function LogsContent() {
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const currentPageSelected = currentRows.length > 0 && currentRows.every((item) => selectedSet.has(item.id));
   const allSelected = items.length > 0 && items.every((item) => selectedSet.has(item.id));
+  const clearTypeLabel = typeLabels[type] || t("clearDialog.genericType");
 
   const loadLogs = async () => {
     setIsLoading(true);
@@ -139,6 +142,25 @@ function LogsContent() {
     }
   };
 
+  const confirmClear = async () => {
+    setIsClearing(true);
+    try {
+      const data = await clearSystemLogs(type);
+      toast.success(t("toasts.clearSuccess", { count: data.removed, type: clearTypeLabel }));
+      setClearDialogOpen(false);
+      setSelectedIds([]);
+      if (detailLog && detailLog.type === type) {
+        setDetailOpen(false);
+        setDetailLog(null);
+      }
+      await loadLogs();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("toasts.clearFailed"));
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   useEffect(() => {
     void loadLogs();
   }, [type, startDate, endDate]);
@@ -189,12 +211,21 @@ function LogsContent() {
                 <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
                 {t("toolbar.refresh")}
               </Button>
-              <button type="button" className="text-sm text-stone-500 hover:text-stone-900 disabled:text-stone-300" onClick={() => setSelectedIds([])} disabled={selectedIds.length === 0 || isDeleting}>
+              <button type="button" className="text-sm text-stone-500 hover:text-stone-900 disabled:text-stone-300" onClick={() => setSelectedIds([])} disabled={selectedIds.length === 0 || isDeleting || isClearing}>
                 {t("toolbar.clearSelection")}
               </button>
-              <Button variant="outline" className="h-8 rounded-lg border-rose-200 bg-white px-3 text-rose-600 hover:bg-rose-50" onClick={() => setDeletingItems(items.filter((item) => selectedSet.has(item.id)))} disabled={selectedIds.length === 0 || isDeleting}>
+              <Button variant="outline" className="h-8 rounded-lg border-rose-200 bg-white px-3 text-rose-600 hover:bg-rose-50" onClick={() => setDeletingItems(items.filter((item) => selectedSet.has(item.id)))} disabled={selectedIds.length === 0 || isDeleting || isClearing}>
                 <Trash2 className="size-4" />
                 {t("toolbar.deleteSelected")}
+              </Button>
+              <Button
+                variant="outline"
+                className="h-8 rounded-lg border-rose-200 bg-white px-3 text-rose-600 hover:bg-rose-50"
+                onClick={() => setClearDialogOpen(true)}
+                disabled={items.length === 0 || isLoading || isDeleting || isClearing}
+              >
+                <Trash2 className="size-4" />
+                {t("toolbar.clearType", { type: clearTypeLabel })}
               </Button>
             </div>
           </div>
@@ -349,6 +380,25 @@ function LogsContent() {
             <Button className="rounded-xl bg-rose-600 text-white hover:bg-rose-700" onClick={() => void confirmDelete()} disabled={isDeleting || deletingItems.length === 0}>
               {isDeleting ? <LoaderCircle className="size-4 animate-spin" /> : null}
               {t("deleteDialog.confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={clearDialogOpen} onOpenChange={(open) => (!open ? setClearDialogOpen(false) : null)}>
+        <DialogContent showCloseButton={false} className="rounded-2xl p-6">
+          <DialogHeader className="gap-2">
+            <DialogTitle>{t("clearDialog.title", { type: clearTypeLabel })}</DialogTitle>
+            <DialogDescription className="text-sm leading-6">
+              {t("clearDialog.description", { type: clearTypeLabel })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" className="rounded-xl" onClick={() => setClearDialogOpen(false)} disabled={isClearing}>
+              {t("clearDialog.cancel")}
+            </Button>
+            <Button className="rounded-xl bg-rose-600 text-white hover:bg-rose-700" onClick={() => void confirmClear()} disabled={isClearing}>
+              {isClearing ? <LoaderCircle className="size-4 animate-spin" /> : null}
+              {t("clearDialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
