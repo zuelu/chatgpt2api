@@ -1051,7 +1051,7 @@ def stream_image_outputs(
             int(time.time()),
         )["data"]
         if data:
-            _remove_image_conversation_later(backend, conversation_id)
+            _remove_image_conversation_later(backend, conversation_id, success=True, retain_conversation=request.retain_conversation)
             yield ImageOutput(kind="result", model=request.model, index=index, total=total, data=data, conversation_id=conversation_id)
         return
 
@@ -1149,7 +1149,7 @@ def stream_image_outputs(
                         int(time.time()),
                     )["data"]
                     if data:
-                        _remove_image_conversation_later(backend, conversation_id)
+                        _remove_image_conversation_later(backend, conversation_id, success=True, retain_conversation=request.retain_conversation)
                         yield ImageOutput(kind="result", model=request.model, index=index, total=total, data=data, conversation_id=conversation_id)
                         return
         elif is_text_reply:
@@ -1262,7 +1262,7 @@ def stream_image_outputs(
                     int(time.time()),
                 )["data"]
                 if data:
-                    _remove_image_conversation_later(backend, conversation_id)
+                    _remove_image_conversation_later(backend, conversation_id, success=True, retain_conversation=request.retain_conversation)
                     yield ImageOutput(kind="result", model=request.model, index=index, total=total, data=data, conversation_id=conversation_id)
                     return
         
