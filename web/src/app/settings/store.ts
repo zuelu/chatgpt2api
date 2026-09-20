@@ -190,7 +190,7 @@ function normalizeConfig(config: SettingsConfig): SettingsConfig {
     global_system_prompt: String(config.global_system_prompt || ""),
     default_upstream_model_name: String(config.default_upstream_model_name || "gpt-5-5"),
     default_upstream_model_name_25: String(config.default_upstream_model_name_25 || ""),
-    codex_image_model_25_name: String(config.codex_image_model_25_name || "gpt-image-2.5-flare"),
+    codex_image_model_25_name: String(config.codex_image_model_25_name || "gpt-image-2.5-sunburst"),
     default_thinking_effort: defaultThinkingEffort,
     sensitive_words: Array.isArray(config.sensitive_words) ? config.sensitive_words : [],
     ai_review: {
@@ -444,7 +444,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
         global_system_prompt: String(config.global_system_prompt || "").trim(),
         default_upstream_model_name: String(config.default_upstream_model_name || "gpt-5-5").trim() || "gpt-5-5",
         default_upstream_model_name_25: String(config.default_upstream_model_name_25 || "").trim(),
-        codex_image_model_25_name: String(config.codex_image_model_25_name || "gpt-image-2.5-flare").trim() || "gpt-image-2.5-flare",
+        codex_image_model_25_name: String(config.codex_image_model_25_name || "gpt-image-2.5-sunburst").trim() || "gpt-image-2.5-sunburst",
         default_thinking_effort: ["standard", "extended", "max"].includes(String(config.default_thinking_effort))
           ? config.default_thinking_effort
           : "auto",

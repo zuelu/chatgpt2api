@@ -27,7 +27,7 @@ from services.protocol import (
 
 class ImageGenerationRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
-    model: str = "gpt-image-2"
+    model: str = "gpt-image-2.5"
     n: int = Field(default=1, ge=1, le=4)
     size: str | None = None
     quality: str = "auto"
@@ -58,7 +58,7 @@ class ResponseCreateRequest(BaseModel):
 class ConversationBindingTextRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     model: str = "auto"
-    image_model: str = "gpt-image-2"
+    image_model: str = "gpt-image-2.5"
     messages: list[dict[str, object]]
     thinking_effort: str = "standard"
     provider_binding_id: str | None = None

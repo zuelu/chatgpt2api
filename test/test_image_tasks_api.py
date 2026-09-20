@@ -111,6 +111,17 @@ class ImageTasksApiTests(unittest.TestCase):
         self.assertEqual(request["conversation_id"], "")
         self.assertEqual(request["parent_message_id"], "")
 
+    def test_create_generation_task_defaults_to_gpt_image_2_5(self):
+        response = self.client.post(
+            "/api/image-tasks/generations",
+            headers=AUTH_HEADERS,
+            json={"client_task_id": "task-default-model", "prompt": "cat"},
+        )
+
+        self.assertEqual(response.status_code, 200, response.text)
+        request = self.fake_service.generation_calls[0][1]
+        self.assertEqual(request["model"], "gpt-image-2.5")
+
     def test_create_edit_task_accepts_multiple_images(self):
         """测试图片编辑任务接口支持多个上传图片。"""
         response = self.client.post(

@@ -36,10 +36,10 @@ class ImageEditsJsonApiTests(unittest.TestCase):
         app.include_router(ai_module.create_router())
         self.client = TestClient(app)
 
-    def test_json_model_omitted_uses_existing_default_logic(self):
+    def test_json_model_omitted_uses_latest_default(self):
         response = self.client.post("/v1/images/edits", headers=AUTH_HEADERS, json={"prompt": "未传 model", "image": PNG_DATA_URL})
         self.assertEqual(response.status_code, 200, response.text)
-        self.assertEqual(self.calls[0]["model"], "gpt-image-2")
+        self.assertEqual(self.calls[0]["model"], "gpt-image-2.5")
 
     def test_json_model_is_not_overwritten_when_provided(self):
         response = self.client.post(

@@ -349,9 +349,9 @@
       },
       "codexImageModel25": {
         "label": "Mô hình công cụ Codex Image 2.5",
-        "hint": "Mô hình mà codex-gpt-image-2.5 dùng khi gọi công cụ tạo ảnh Codex; mặc định là gpt-image-2.5-flare.",
+        "hint": "Mô hình mà codex-gpt-image-2.5 dùng khi gọi công cụ tạo ảnh Codex; mặc định là gpt-image-2.5-sunburst.",
         "options": {
-          "flare": "gpt-image-2.5-flare (mặc định)"
+          "flare": "gpt-image-2.5-flare"
         }
       }
     },
@@ -501,7 +501,7 @@
         "title": "Tạo ảnh",
         "input": {
           "prompt": "Prompt tạo ảnh.",
-          "model": "Tùy chọn, mặc định gpt-image-2.",
+          "model": "Tùy chọn, mặc định gpt-image-2.5.",
           "n": "Tùy chọn, số lượng tạo, hiện giới hạn 1-4.",
           "size": "Tùy chọn, kích thước ảnh.",
           "quality": "Tùy chọn, mặc định auto.",
@@ -519,7 +519,7 @@
         "input": {
           "image": "Ảnh tham chiếu, hỗ trợ tải lên multipart, cũng hỗ trợ liên kết ảnh JSON.",
           "prompt": "Prompt chỉnh sửa.",
-          "model": "Tùy chọn, mặc định gpt-image-2.",
+          "model": "Tùy chọn, mặc định gpt-image-2.5.",
           "n": "Tùy chọn, số lượng tạo, hiện giới hạn 1-4.",
           "size": "Tùy chọn, kích thước ảnh.",
           "quality": "Tùy chọn, mặc định auto."

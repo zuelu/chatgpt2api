@@ -349,9 +349,9 @@
       },
       "codexImageModel25": {
         "label": "Codex Image 2.5 tool model",
-        "hint": "The model used by codex-gpt-image-2.5 when calling the Codex image tool; defaults to gpt-image-2.5-flare.",
+        "hint": "The model used by codex-gpt-image-2.5 when calling the Codex image tool; defaults to gpt-image-2.5-sunburst.",
         "options": {
-          "flare": "gpt-image-2.5-flare (default)"
+          "flare": "gpt-image-2.5-flare"
         }
       }
     },
@@ -501,7 +501,7 @@
         "title": "Image generation",
         "input": {
           "prompt": "The image generation prompt.",
-          "model": "Optional; defaults to gpt-image-2.",
+          "model": "Optional; defaults to gpt-image-2.5.",
           "n": "Optional; number to generate, currently limited to 1-4.",
           "size": "Optional; the image size.",
           "quality": "Optional; defaults to auto.",
@@ -519,7 +519,7 @@
         "input": {
           "image": "The reference image; supports multipart upload as well as a JSON image link.",
           "prompt": "The edit prompt.",
-          "model": "Optional; defaults to gpt-image-2.",
+          "model": "Optional; defaults to gpt-image-2.5.",
           "n": "Optional; number to generate, currently limited to 1-4.",
           "size": "Optional; the image size.",
           "quality": "Optional; defaults to auto."

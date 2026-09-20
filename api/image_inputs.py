@@ -67,7 +67,7 @@ def _payload_from_fields(fields: dict[str, Any]) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail={"error": "prompt is required"})
     payload = {
         "prompt": prompt,
-        "model": _clean(fields.get("model"), "gpt-image-2"),
+        "model": _clean(fields.get("model"), "gpt-image-2.5"),
         "n": _parse_count(fields.get("n")),
         "size": _clean(fields.get("size")) or None,
         "quality": _clean(fields.get("quality"), "auto"),

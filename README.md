@@ -130,9 +130,9 @@ environment:
 - 支持生成可编辑 PSD 文件
 - 支持 Codex 中的画图接口逆向，仅 `Plus` / `Team` / `Pro` 订阅可用，模型别名为 `codex-gpt-image-2`，如有需要可自行在其他场景映射回
   `gpt-image-2`，用于和官网画图区分；也就意味着同一账号会同时有官网和 Codex 两份生图额度
-- 支持 ChatGPT Images 2.5：官网画图链路的别名为 `gpt-image-2.5`（上游模型名可在设置页单独配置，留空跟随 `gpt-image-2` 设置）；
-  Codex 链路的别名为 `codex-gpt-image-2.5`（同样支持 `plus` / `team` / `pro` 前缀），工具模型默认 `gpt-image-2.5-flare`、
-  可在设置页切换为 `gpt-image-2.5-sunburst`，质量档额外支持 `xhigh` / `max`
+- 支持 ChatGPT Images 2.5：官网画图链路的别名为 `gpt-image-2.5`（也是默认生图模型；上游模型名可在设置页单独配置，留空跟随旧版设置）；
+  Codex 链路的别名为 `codex-gpt-image-2.5`（同样支持 `plus` / `team` / `pro` 前缀），工具模型默认 `gpt-image-2.5-sunburst`、
+  可在设置页切换为 `gpt-image-2.5-flare`，质量档额外支持 `xhigh` / `max`
 
 ### 在线画图功能
 
@@ -221,7 +221,7 @@ curl http://localhost:8000/v1/images/generations \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <auth-key>" \
   -d '{
-    "model": "gpt-image-2",
+    "model": "gpt-image-2.5",
     "prompt": "一只漂浮在太空里的猫",
     "n": 1,
     "response_format": "b64_json"
@@ -234,7 +234,7 @@ curl http://localhost:8000/v1/images/generations \
 
 | 字段                | 说明                                                 |
 |:------------------|:---------------------------------------------------|
-| `model`           | 图片模型，当前可用值以 `/v1/models` 返回结果为准，推荐使用 `gpt-image-2`；`gpt-image-2.5` / `codex-gpt-image-2.5` 对应 ChatGPT Images 2.5 |
+| `model`           | 图片模型，省略时默认 `gpt-image-2.5`；当前可用值以 `/v1/models` 返回结果为准，`gpt-image-2` 仍可显式选择 |
 | `prompt`          | 图片生成提示词                                            |
 | `n`               | 生成数量，当前后端限制为 `1-4`                                 |
 | `response_format` | 当前请求模型中包含该字段，默认值为 `b64_json`                       |
@@ -252,7 +252,7 @@ OpenAI 兼容图片编辑接口，可上传图片文件，也可按官方 JSON �
 ```bash
 curl http://localhost:8000/v1/images/edits \
   -H "Authorization: Bearer <auth-key>" \
-  -F "model=gpt-image-2" \
+  -F "model=gpt-image-2.5" \
   -F "prompt=把这张图改成赛博朋克夜景风格" \
   -F "n=1" \
   -F "image=@./input.png"
@@ -265,7 +265,7 @@ curl http://localhost:8000/v1/images/edits \
   -H "Authorization: Bearer <auth-key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-image-2",
+    "model": "gpt-image-2.5",
     "prompt": "把这张图改成赛博朋克夜景风格",
     "images": [
       {"image_url": "https://example.com/input.png"}
@@ -279,7 +279,7 @@ curl http://localhost:8000/v1/images/edits \
 
 | 字段          | 说明                                            |
 |:------------|:----------------------------------------------|
-| `model`     | 图片模型， `gpt-image-2`（`gpt-image-2.5` / `codex-gpt-image-2.5` 对应 ChatGPT Images 2.5） |
+| `model`     | 图片模型，省略时默认 `gpt-image-2.5`，`gpt-image-2` 仍可显式选择 |
 | `prompt`    | 图片编辑提示词                                       |
 | `n`         | 生成数量，当前后端限制为 `1-4`                            |
 | `image`     | 需要编辑的图片文件，使用 multipart/form-data 上传           |

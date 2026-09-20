@@ -426,7 +426,7 @@ def response_events(body: dict[str, Any]) -> Iterator[dict[str, Any]]:
     prompt = extract_response_prompt(body.get("input"))
     if not prompt:
         raise HTTPException(status_code=400, detail={"error": "input text is required"})
-    model = str(body.get("model") or "gpt-image-2").strip() or "gpt-image-2"
+    model = str(body.get("model") or "gpt-image-2.5").strip() or "gpt-image-2.5"
     image_info = extract_response_image(body.get("input"))
     if image_info:
         image_data, mime_type = image_info

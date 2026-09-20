@@ -118,7 +118,7 @@ function buildDocs(t: TFunction): ApiDoc[] {
       example: (baseUrl: string, key: string) => `curl ${baseUrl}/images/generations \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${key}" \\
-  -d '{"model":"gpt-image-2","prompt":"${t("apiDocs.docs.imageGenerations.examplePrompt")}","n":1}'`,
+  -d '{"model":"gpt-image-2.5","prompt":"${t("apiDocs.docs.imageGenerations.examplePrompt")}","n":1}'`,
     },
     {
       title: t("apiDocs.docs.imageEdits.title"),
@@ -140,7 +140,7 @@ function buildDocs(t: TFunction): ApiDoc[] {
       ],
       example: (baseUrl: string, key: string) => `curl ${baseUrl}/images/edits \\
   -H "Authorization: Bearer ${key}" \\
-  -F "model=gpt-image-2" \\
+  -F "model=gpt-image-2.5" \\
   -F "prompt=${t("apiDocs.docs.imageEdits.examplePrompt")}" \\
   -F "image=@./input.png"`,
     },

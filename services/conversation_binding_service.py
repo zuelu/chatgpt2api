@@ -86,7 +86,7 @@ class ConversationBindingService:
         conversation_id = str(body.get("conversation_id") or "").strip()
         parent_message_id = str(body.get("parent_message_id") or "").strip()
         model = str(body.get("model") or "auto").strip() or "auto"
-        image_model = str(body.get("image_model") or "gpt-image-2").strip() or "gpt-image-2"
+        image_model = str(body.get("image_model") or "gpt-image-2.5").strip() or "gpt-image-2.5"
         messages = body.get("messages")
         if not isinstance(messages, list) or not messages:
             raise ConversationBindingError(

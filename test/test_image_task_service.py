@@ -114,6 +114,57 @@ class ImageTaskServiceTests(unittest.TestCase):
             self.assertEqual(task["data"][0]["url"], "http://example.test/image.png")
             self.assertEqual(calls, 1)
 
+    def test_unbound_image_result_can_keep_upstream_conversation_cursor(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            def handler(_payload):
+                return {
+                    "data": [{"url": "http://example.test/image.png"}],
+                    "_conversation_id": "conversation-1",
+                    "_parent_message_id": "message-2",
+                }
+
+            service = self.make_service(Path(tmp_dir) / "image_tasks.json", handler)
+            service.submit_generation(
+                OWNER,
+                client_task_id="unbound-with-cursor",
+                prompt="cat",
+                model="gpt-image-2.5",
+                size=None,
+                base_url="http://local.test",
+            )
+
+            task = wait_for_task(service, OWNER, "unbound-with-cursor", "success")
+
+            self.assertEqual(task["binding_status"], "unbound")
+            self.assertEqual(task["image_session_id"], "conversation-1")
+            self.assertEqual(task["image_session_parent_id"], "message-2")
+            self.assertEqual(task["data"][0]["url"], "http://example.test/image.png")
+
+    def test_retained_image_result_still_requires_authoritative_binding_state(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            def handler(_payload):
+                return {
+                    "data": [{"url": "http://example.test/image.png"}],
+                    "_conversation_id": "conversation-1",
+                    "_parent_message_id": "message-2",
+                }
+
+            service = self.make_service(Path(tmp_dir) / "image_tasks.json", handler)
+            service.submit_generation(
+                OWNER,
+                client_task_id="retained-without-binding",
+                prompt="cat",
+                model="gpt-image-2.5",
+                size=None,
+                base_url="http://local.test",
+                client_conversation_id="workbench-conversation-1",
+                retain_conversation=True,
+            )
+
+            task = wait_for_task(service, OWNER, "retained-without-binding", "error")
+
+            self.assertEqual(task["error"], "bound image result is missing authoritative conversation state")
+
     def test_duplicate_task_id_with_changed_request_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             service = self.make_service(Path(tmp_dir) / "image_tasks.json")

@@ -529,9 +529,9 @@ class ConfigStore:
     @property
     def codex_image_model_25_name(self) -> str:
         """Codex 链路中 gpt-image-2.5 对应的 image_generation 工具模型名。"""
-        value = str(self.data.get("codex_image_model_25_name") or "gpt-image-2.5-flare").strip().lower()
+        value = str(self.data.get("codex_image_model_25_name") or "gpt-image-2.5-sunburst").strip().lower()
         allowed = {"gpt-image-2.5-flare", "gpt-image-2.5-sunburst"}
-        return value if value in allowed else "gpt-image-2.5-flare"
+        return value if value in allowed else "gpt-image-2.5-sunburst"
 
     @property
     def default_thinking_effort(self) -> str:

@@ -973,7 +973,7 @@ class OpenAIBackendAPI:
             images: list[str] | None = None,
             size: str | None = None,
             quality: str = "auto",
-            image_model: str = "gpt-image-2",
+            image_model: str = "gpt-image-2.5-sunburst",
     ) -> Iterator[Dict[str, Any]]:
         if not self.access_token:
             raise RuntimeError("access_token is required for codex image endpoints")
@@ -986,10 +986,10 @@ class OpenAIBackendAPI:
             "input": self._codex_image_input(prompt, images or []),
             "tools": [{
                 "type": "image_generation",
-                "model": str(image_model or "gpt-image-2"),
+                "model": str(image_model or "gpt-image-2.5-sunburst"),
                 "action": "edit" if images else "generate",
                 "size": str(size or "1024x1024"),
-                "quality": normalize_codex_image_quality(str(image_model or "gpt-image-2"), quality),
+                "quality": normalize_codex_image_quality(str(image_model or "gpt-image-2.5-sunburst"), quality),
                 "output_format": "png",
             }],
             "tool_choice": {"type": "image_generation"},

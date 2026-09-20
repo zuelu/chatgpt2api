@@ -14,7 +14,7 @@ from services.log_service import LoggedCall
 class ImageGenerationTaskRequest(BaseModel):
     client_task_id: str = Field(..., min_length=1)
     prompt: str = Field(..., min_length=1)
-    model: str = "gpt-image-2"
+    model: str = "gpt-image-2.5"
     size: str | None = None
     quality: str = "auto"
     provider_binding_id: str = ""
