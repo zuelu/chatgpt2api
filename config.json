@@ -105,5 +105,6 @@
       "url": "https://canvas.best"
     }
   },
-  "image_remove_conversation_after_result": true
+  "image_remove_conversation_after_result": true,
+  "codex_image_model_26_name": "gpt-image-2.6-sunburst"
 }

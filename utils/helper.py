@@ -14,11 +14,15 @@ from fastapi import HTTPException
 from services.proxy_service import proxy_settings
 from utils.log import logger
 
-BASE_IMAGE_MODELS = {"gpt-image-2", "gpt-image-2.5", "codex-gpt-image-2", "codex-gpt-image-2.5"}
 IMAGE_MODEL_PLAN_TYPES = ("plus", "team", "pro")
 CODEX_IMAGE_MODEL = "codex-gpt-image-2"
 CODEX_IMAGE_MODEL_25 = "codex-gpt-image-2.5"
-CODEX_IMAGE_BASE_MODELS = {CODEX_IMAGE_MODEL, CODEX_IMAGE_MODEL_25}
+CODEX_IMAGE_MODEL_26 = "codex-gpt-image-2.6"
+IMAGE_MODEL_26_TOOL_NAMES = {"gpt-image-2.6-sunburst", "gpt-image-2.6-flare"}
+CODEX_IMAGE_26_MODELS = {CODEX_IMAGE_MODEL_26, "gpt-image-2.6"} | IMAGE_MODEL_26_TOOL_NAMES
+DEFAULT_IMAGE_MODEL = CODEX_IMAGE_MODEL_26
+CODEX_IMAGE_BASE_MODELS = {CODEX_IMAGE_MODEL, CODEX_IMAGE_MODEL_25} | CODEX_IMAGE_26_MODELS
+BASE_IMAGE_MODELS = {"gpt-image-2", "gpt-image-2.5"} | CODEX_IMAGE_BASE_MODELS
 PREFIXED_CODEX_IMAGE_MODELS = {
     f"{plan_type}-{codex_model}"
     for plan_type in IMAGE_MODEL_PLAN_TYPES

@@ -20,6 +20,8 @@ from services.openai_backend_api import (
 )
 from utils.helper import (
     CODEX_IMAGE_MODEL_25,
+    CODEX_IMAGE_26_MODELS,
+    IMAGE_MODEL_26_TOOL_NAMES,
     IMAGE_MODELS,
     extract_image_from_message_content,
     is_codex_image_model,
@@ -1307,6 +1309,10 @@ def _codex_response_images(value: Any) -> list[str]:
 def codex_image_tool_model(model: object) -> str:
     """把本地图片模型名映射为 Codex image_generation 工具模型名。"""
     _, base_model = split_image_model(model)
+    if base_model in IMAGE_MODEL_26_TOOL_NAMES:
+        return base_model
+    if base_model in CODEX_IMAGE_26_MODELS:
+        return config.codex_image_model_26_name
     if base_model == CODEX_IMAGE_MODEL_25:
         return config.codex_image_model_25_name
     return "gpt-image-2"

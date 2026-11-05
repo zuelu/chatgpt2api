@@ -23,11 +23,12 @@ from services.protocol import (
     openai_v1_response,
     openai_search,
 )
+from utils.helper import DEFAULT_IMAGE_MODEL
 
 
 class ImageGenerationRequest(BaseModel):
     prompt: str = Field(..., min_length=1)
-    model: str = "gpt-image-2.5"
+    model: str = DEFAULT_IMAGE_MODEL
     n: int = Field(default=1, ge=1, le=4)
     size: str | None = None
     quality: str = "auto"
@@ -58,7 +59,7 @@ class ResponseCreateRequest(BaseModel):
 class ConversationBindingTextRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     model: str = "auto"
-    image_model: str = "gpt-image-2.5"
+    image_model: str = DEFAULT_IMAGE_MODEL
     messages: list[dict[str, object]]
     thinking_effort: str = "standard"
     provider_binding_id: str | None = None

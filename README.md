@@ -21,6 +21,23 @@
 
 
 
+## GPT Image 2.6（v1.10.0）
+
+- 工作台、新图片任务和图片 API 省略 `model` 时，默认使用 `codex-gpt-image-2.6`，对应 `gpt-image-2.6-sunburst`。需要已导入的 **Codex 来源 Plus / Team / Pro 账号**。
+- Sunburst 适合细节、布局和精确编辑；Flare 适合速度优先的生成。可在设置中修改 `codex_image_model_26_name`，或请求时直接指定 `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`；`gpt-image-2.6` 是同一 Codex 通道的本地别名。
+- 保留显式选择 `gpt-image-2` / `gpt-image-2.5` 的网页通道，以及 `codex-gpt-image-2` / `codex-gpt-image-2.5` 的原有配置。仅有网页账号的部署，请显式使用原网页模型；新默认值不会自动切换到网页通道。
+- 本版本接入现有 PNG 生成/编辑和 `auto` / `low` / `medium` / `high` / `xhigh` / `max` 质量档。官方新增的 complexity、标注编辑、SVG 和 GIF 尚未在本项目接入。模型特性见 [OpenAI 图片文档](https://developers.openai.com/api/docs/guides/image-generation)。
+
+更新：
+
+```bash
+docker compose pull app
+docker compose up -d app
+```
+
+以上命令适用于仓库默认的 `latest` 镜像；如固定了版本，请先将 compose 镜像标签改为 `ghcr.io/zuelu/chatgpt2api-maintained:1.10.0`。沿用原 `config.json` 和 `data` 挂载即可，无需重新导入账号或迁移历史。
+
+
 ## 快速开始
 
 ### Docker 运行
@@ -110,22 +127,22 @@ environment:
 - 兼容 `POST /v1/images/edits` 图片编辑接口
 - 兼容面向图片场景的 `POST /v1/chat/completions`
 - 兼容面向图片场景的 `POST /v1/responses`
-- `GET /v1/models` 返回 `gpt-image-2`、`gpt-image-2.5`、`codex-gpt-image-2`、`codex-gpt-image-2.5`、`auto`、`gpt-5`、`gpt-5-1`、`gpt-5-2`、`gpt-5-3`、`gpt-5-3-mini`、
+- `GET /v1/models` 返回账号支持的 `codex-gpt-image-2.6`、`gpt-image-2.6`、`gpt-image-2.6-sunburst`、`gpt-image-2.6-flare`、`gpt-image-2`、`gpt-image-2.5`、`codex-gpt-image-2`、`codex-gpt-image-2.5`、`auto`、`gpt-5`、`gpt-5-1`、`gpt-5-2`、`gpt-5-3`、`gpt-5-3-mini`、
   `gpt-5-mini`
 - 支持通过 `n` 返回多张生成结果
 - 支持生成可编辑 PPT 文件
 - 支持生成可编辑 PSD 文件
 - 支持 Codex 中的画图接口逆向，仅 `Plus` / `Team` / `Pro` 订阅可用，模型别名为 `codex-gpt-image-2`，如有需要可自行在其他场景映射回
   `gpt-image-2`，用于和官网画图区分；也就意味着同一账号会同时有官网和 Codex 两份生图额度
-- 支持 ChatGPT Images 2.5：官网画图链路的别名为 `gpt-image-2.5`（API 省略模型时仍使用该默认值；上游模型名可在设置页单独配置，留空跟随旧版设置）；
+- 支持 ChatGPT Images 2.5：官网画图链路的别名为 `gpt-image-2.5`（上游模型名可在设置页单独配置，留空跟随旧版设置）；
   Codex 链路的别名为 `codex-gpt-image-2.5`（同样支持 `plus` / `team` / `pro` 前缀），工具模型默认 `gpt-image-2.5-sunburst`、
   可在设置页切换为 `gpt-image-2.5-flare`，质量档额外支持 `xhigh` / `max`
-- Web 工作台默认选择 `codex-gpt-image-2.5`；需要导入 Codex 来源的 `Plus` / `Team` / `Pro` 账号，并具有 `gpt-6.1-sol` 和图片工具的使用权限。账号池未提供该模型时，工作台按当前可用模型列表选择。此默认值不会改写历史会话或 API 显式指定的模型。
+- Web 工作台默认选择 `codex-gpt-image-2.6`；需要导入 Codex 来源的 `Plus` / `Team` / `Pro` 账号，并具有 `gpt-6.1-sol` 和图片工具的使用权限。账号池未提供该模型时，工作台按当前可用模型列表选择。此默认值不会改写历史会话或 API 显式指定的模型。
 
 ### 在线画图功能
 
 - 内置在线画图工作台，支持生成、图片编辑与多图组图编辑
-- 支持 `gpt-image-2`、`gpt-image-2.5`、`codex-gpt-image-2`、`codex-gpt-image-2.5`、`auto`、`gpt-5`、`gpt-5-1`、`gpt-5-2`、`gpt-5-3`、`gpt-5-3-mini`、`gpt-5-mini` 模型选择
+- 支持 `codex-gpt-image-2.6`、`gpt-image-2.6-sunburst`、`gpt-image-2.6-flare`、`gpt-image-2`、`gpt-image-2.5`、`codex-gpt-image-2`、`codex-gpt-image-2.5`、`auto`、`gpt-5`、`gpt-5-1`、`gpt-5-2`、`gpt-5-3`、`gpt-5-3-mini`、`gpt-5-mini` 模型选择
 - 编辑模式支持参考图上传
 - 前端支持多图生成交互
 - 本地保存图片会话历史，支持回看、删除和清空
@@ -191,7 +208,7 @@ curl http://localhost:8000/v1/models \
 
 | 字段   | 说明                                                                                                         |
 |:-----|:-----------------------------------------------------------------------------------------------------------|
-| 返回模型 | `gpt-image-2`、`gpt-image-2.5`、`codex-gpt-image-2`、`codex-gpt-image-2.5`、`auto`、`gpt-5`、`gpt-5-1`、`gpt-5-2`、`gpt-5-3`、`gpt-5-3-mini`、`gpt-5-mini` |
+| 返回模型 | `codex-gpt-image-2.6`、`gpt-image-2.6-sunburst`、`gpt-image-2.6-flare`、`gpt-image-2`、`gpt-image-2.5`、`codex-gpt-image-2`、`codex-gpt-image-2.5`、`auto`、`gpt-5`、`gpt-5-1`、`gpt-5-2`、`gpt-5-3`、`gpt-5-3-mini`、`gpt-5-mini` |
 | 接入场景 | 可接入 Cherry Studio、New API 等上游或客户端                                                                          |
 
 <br>
@@ -209,7 +226,7 @@ curl http://localhost:8000/v1/images/generations \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <auth-key>" \
   -d '{
-    "model": "gpt-image-2.5",
+    "model": "codex-gpt-image-2.6",
     "prompt": "一只漂浮在太空里的猫",
     "n": 1,
     "response_format": "b64_json"
@@ -222,7 +239,7 @@ curl http://localhost:8000/v1/images/generations \
 
 | 字段                | 说明                                                 |
 |:------------------|:---------------------------------------------------|
-| `model`           | 图片模型，省略时默认 `gpt-image-2.5`；当前可用值以 `/v1/models` 返回结果为准，`gpt-image-2` 仍可显式选择 |
+| `model`           | 图片模型，省略时默认 `codex-gpt-image-2.6`；当前可用值以 `/v1/models` 返回结果为准，`gpt-image-2` 仍可显式选择 |
 | `prompt`          | 图片生成提示词                                            |
 | `n`               | 生成数量，当前后端限制为 `1-4`                                 |
 | `response_format` | 当前请求模型中包含该字段，默认值为 `b64_json`                       |
@@ -240,7 +257,7 @@ OpenAI 兼容图片编辑接口，可上传图片文件，也可按官方 JSON �
 ```bash
 curl http://localhost:8000/v1/images/edits \
   -H "Authorization: Bearer <auth-key>" \
-  -F "model=gpt-image-2.5" \
+  -F "model=codex-gpt-image-2.6" \
   -F "prompt=把这张图改成赛博朋克夜景风格" \
   -F "n=1" \
   -F "image=@./input.png"
@@ -253,7 +270,7 @@ curl http://localhost:8000/v1/images/edits \
   -H "Authorization: Bearer <auth-key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gpt-image-2.5",
+    "model": "codex-gpt-image-2.6",
     "prompt": "把这张图改成赛博朋克夜景风格",
     "images": [
       {"image_url": "https://example.com/input.png"}
@@ -267,7 +284,7 @@ curl http://localhost:8000/v1/images/edits \
 
 | 字段          | 说明                                            |
 |:------------|:----------------------------------------------|
-| `model`     | 图片模型，省略时默认 `gpt-image-2.5`，`gpt-image-2` 仍可显式选择 |
+| `model`     | 图片模型，省略时默认 `codex-gpt-image-2.6`，`gpt-image-2` 仍可显式选择 |
 | `prompt`    | 图片编辑提示词                                       |
 | `n`         | 生成数量，当前后端限制为 `1-4`                            |
 | `image`     | 需要编辑的图片文件，使用 multipart/form-data 上传           |
@@ -363,7 +380,7 @@ curl http://localhost:8000/v1/responses \
 - `Model not found`：核对设置中的上游模型名称与该账号当前返回的模型 `slug`。显示名称、API 模型名和网页模型 `slug` 可能不同，不要仅根据显示名称填写。
 - 原版 `/backend-api/f/conversation` 的 404 会兼容重试 `/backend-api/conversation`，应以最终请求的错误为准。
 
-Docker 用户可将 compose 中的镜像设为 `ghcr.io/zuelu/chatgpt2api-maintained:1.9.5`，或继续跟随 `latest`，随后执行 `docker compose pull` 和 `docker compose up -d`。升级前备份配置和数据目录；已有失败任务不会因升级自动重新生成。
+Docker 用户可将 compose 中的镜像设为 `ghcr.io/zuelu/chatgpt2api-maintained:1.10.0`，或继续跟随 `latest`，随后执行 `docker compose pull` 和 `docker compose up -d`。升级前备份配置和数据目录；已有失败任务不会因升级自动重新生成。
 
 1.9.5 修复了 Codex 生图仍使用已退役主模型 `gpt-5.5` 的兼容问题，改用 `gpt-6.1-sol`。该版本的工作台默认模型为 `codex-gpt-image-2.5`；通过 API 使用该通道时，请显式传入同名模型。原网页通道的交互验证限制仍然存在。
 

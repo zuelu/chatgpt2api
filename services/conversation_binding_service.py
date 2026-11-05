@@ -5,6 +5,7 @@ from typing import Any
 from services.account_service import account_service
 from services.openai_backend_api import OpenAIBackendAPI
 from services.protocol.conversation import conversation_events
+from utils.helper import DEFAULT_IMAGE_MODEL
 
 
 class ConversationBindingError(RuntimeError):
@@ -86,7 +87,7 @@ class ConversationBindingService:
         conversation_id = str(body.get("conversation_id") or "").strip()
         parent_message_id = str(body.get("parent_message_id") or "").strip()
         model = str(body.get("model") or "auto").strip() or "auto"
-        image_model = str(body.get("image_model") or "gpt-image-2.5").strip() or "gpt-image-2.5"
+        image_model = str(body.get("image_model") or DEFAULT_IMAGE_MODEL).strip() or DEFAULT_IMAGE_MODEL
         messages = body.get("messages")
         if not isinstance(messages, list) or not messages:
             raise ConversationBindingError(

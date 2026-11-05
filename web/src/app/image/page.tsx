@@ -159,7 +159,7 @@ function normalizeStoredImageModel(value: string | null, availableModels: ImageM
   if (normalized && availableModels.includes(normalized)) {
     return normalized;
   }
-  return availableModels.includes("codex-gpt-image-2.5") ? "codex-gpt-image-2.5" : availableModels[0] || "codex-gpt-image-2.5";
+  return availableModels.includes("codex-gpt-image-2.6") ? "codex-gpt-image-2.6" : availableModels[0] || "codex-gpt-image-2.6";
 }
 
 function buildReferenceImageFromResult(image: StoredImage, fileName: string): StoredReferenceImage | null {
@@ -475,8 +475,8 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const [imageWidth, setImageWidth] = useState("1024");
   const [imageHeight, setImageHeight] = useState("1024");
   const [imageQuality, setImageQuality] = useState("auto");
-  const [imageModel, setImageModel] = useState<ImageModel>("codex-gpt-image-2.5");
-  const [imageModels, setImageModels] = useState<ImageModel[]>(["codex-gpt-image-2.5"]);
+  const [imageModel, setImageModel] = useState<ImageModel>("codex-gpt-image-2.6");
+  const [imageModels, setImageModels] = useState<ImageModel[]>(["codex-gpt-image-2.6"]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [referenceImageFiles, setReferenceImageFiles] = useState<File[]>([]);
   const [referenceImages, setReferenceImages] = useState<StoredReferenceImage[]>([]);
@@ -715,7 +715,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         });
       } catch {
         if (!cancelled) {
-          setImageModels(["codex-gpt-image-2.5"]);
+          setImageModels(["codex-gpt-image-2.6"]);
         }
       }
     };

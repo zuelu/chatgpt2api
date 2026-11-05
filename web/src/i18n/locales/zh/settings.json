@@ -353,6 +353,13 @@
         "options": {
           "flare": "gpt-image-2.5-flare"
         }
+      },
+      "codexImageModel26": {
+        "label": "Codex 图片 2.6 工具模型",
+        "hint": "默认使用 gpt-image-2.6-sunburst，适合细节和精确编辑；Flare 适合快速生成。需要 Codex 来源的 Plus / Team / Pro 账号。",
+        "options": {
+          "flare": "gpt-image-2.6-flare"
+        }
       }
     },
     "imageStorage": {
@@ -501,7 +508,7 @@
         "title": "图片生成",
         "input": {
           "prompt": "图片生成提示词。",
-          "model": "可选，默认 gpt-image-2.5。",
+          "model": "可选，默认 codex-gpt-image-2.6。",
           "n": "可选，生成数量，当前限制 1-4。",
           "size": "可选，图片尺寸。",
           "quality": "可选，默认 auto。",
@@ -519,7 +526,7 @@
         "input": {
           "image": "参考图，支持 multipart 上传，也支持 JSON 图片链接。",
           "prompt": "编辑提示词。",
-          "model": "可选，默认 gpt-image-2.5。",
+          "model": "可选，默认 codex-gpt-image-2.6。",
           "n": "可选，生成数量，当前限制 1-4。",
           "size": "可选，图片尺寸。",
           "quality": "可选，默认 auto。"

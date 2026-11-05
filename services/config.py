@@ -534,6 +534,13 @@ class ConfigStore:
         return value if value in allowed else "gpt-image-2.5-sunburst"
 
     @property
+    def codex_image_model_26_name(self) -> str:
+        """Codex 图片 2.6 别名使用的工具模型；独立于旧版 2.5 配置。"""
+        value = str(self.data.get("codex_image_model_26_name") or "gpt-image-2.6-sunburst").strip().lower()
+        allowed = {"gpt-image-2.6-flare", "gpt-image-2.6-sunburst"}
+        return value if value in allowed else "gpt-image-2.6-sunburst"
+
+    @property
     def default_thinking_effort(self) -> str:
         value = str(self.data.get("default_thinking_effort") or "auto").strip().lower()
         return value if value in {"auto", "standard", "extended", "max"} else "auto"
@@ -601,6 +608,7 @@ class ConfigStore:
         data["default_upstream_model_name"] = self.default_upstream_model_name
         data["default_upstream_model_name_25"] = self.default_upstream_model_name_25
         data["codex_image_model_25_name"] = self.codex_image_model_25_name
+        data["codex_image_model_26_name"] = self.codex_image_model_26_name
         data["default_thinking_effort"] = self.default_thinking_effort
         data["backup"] = self.get_backup_settings()
         data["image_storage"] = self.get_image_storage_settings()

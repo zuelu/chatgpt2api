@@ -13,6 +13,7 @@ from services.config import DATA_DIR, config
 from services.content_filter import request_text
 from services.log_service import LOG_TYPE_CALL, log_service
 from services.protocol import openai_v1_image_edit, openai_v1_image_generations
+from utils.helper import DEFAULT_IMAGE_MODEL
 from utils.i18n import t
 
 TASK_STATUS_QUEUED = "queued"
@@ -76,7 +77,7 @@ def _request_hash(mode: str, payload: dict[str, Any]) -> str:
     contract = {
         "mode": mode,
         "prompt_sha256": hashlib.sha256(_clean(payload.get("prompt")).encode("utf-8")).hexdigest(),
-        "model": _clean(payload.get("model"), "gpt-image-2.5"),
+        "model": _clean(payload.get("model"), DEFAULT_IMAGE_MODEL),
         "size": _clean(payload.get("size")),
         "quality": _clean(payload.get("quality"), "auto"),
         "provider_binding_id": _clean(payload.get("provider_binding_id")),
@@ -320,7 +321,7 @@ class ImageTaskService:
                 "owner_id": owner,
                 "status": TASK_STATUS_QUEUED,
                 "mode": mode,
-                "model": _clean(payload.get("model"), "gpt-image-2.5"),
+                "model": _clean(payload.get("model"), DEFAULT_IMAGE_MODEL),
                 "size": _clean(payload.get("size")),
                 "quality": _clean(payload.get("quality"), "auto"),
                 "base_url": _clean(payload.get("base_url")),
@@ -342,14 +343,14 @@ class ImageTaskService:
         if should_start:
             thread = threading.Thread(
                 target=self._run_task,
-                args=(key, mode, payload, dict(identity), _clean(payload.get("model"), "gpt-image-2.5")),
+                args=(key, mode, payload, dict(identity), _clean(payload.get("model"), DEFAULT_IMAGE_MODEL)),
                 name=f"image-task-{task_id[:16]}",
                 daemon=True,
             )
             thread.start()
             watchdog = threading.Thread(
                 target=self._watch_task_timeout,
-                args=(key, dict(identity), mode, _clean(payload.get("model"), "gpt-image-2.5"), time.time(), request_text(payload.get("prompt"))),
+                args=(key, dict(identity), mode, _clean(payload.get("model"), DEFAULT_IMAGE_MODEL), time.time(), request_text(payload.get("prompt"))),
                 name=f"image-task-watch-{task_id[:12]}",
                 daemon=True,
             )

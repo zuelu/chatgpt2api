@@ -29,7 +29,7 @@ from services.protocol.web_search_tool import (
     search_query_from_messages,
     text_with_url_citations,
 )
-from utils.helper import build_chat_image_markdown_content, extract_chat_image, extract_chat_prompt, is_image_chat_request, parse_image_count
+from utils.helper import DEFAULT_IMAGE_MODEL, build_chat_image_markdown_content, extract_chat_image, extract_chat_prompt, is_image_chat_request, parse_image_count
 from utils.image_tokens import (
     chat_usage_from_image_usage,
     count_image_inputs_tokens,
@@ -162,7 +162,7 @@ def chat_messages_from_body(body: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def chat_image_args(body: dict[str, Any]) -> tuple[str, str, int, list[tuple[bytes, str, str]]]:
-    model = str(body.get("model") or "gpt-image-2.5").strip() or "gpt-image-2.5"
+    model = str(body.get("model") or DEFAULT_IMAGE_MODEL).strip() or DEFAULT_IMAGE_MODEL
     prompt = extract_chat_prompt(body)
     if not prompt:
         raise HTTPException(status_code=400, detail={"error": "prompt is required"})

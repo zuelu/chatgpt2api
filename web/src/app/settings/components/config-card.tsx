@@ -43,6 +43,7 @@ export function ConfigCard() {
   const setDefaultUpstreamModelName = useSettingsStore((state) => state.setDefaultUpstreamModelName);
   const setDefaultUpstreamModelName25 = useSettingsStore((state) => state.setDefaultUpstreamModelName25);
   const setCodexImageModel25Name = useSettingsStore((state) => state.setCodexImageModel25Name);
+  const setCodexImageModel26Name = useSettingsStore((state) => state.setCodexImageModel26Name);
   const setDefaultThinkingEffort = useSettingsStore((state) => state.setDefaultThinkingEffort);
   const setSensitiveWordsText = useSettingsStore((state) => state.setSensitiveWordsText);
   const setAIReviewField = useSettingsStore((state) => state.setAIReviewField);
@@ -188,6 +189,22 @@ export function ConfigCard() {
               </SelectContent>
             </Select>
             <p className="text-xs text-stone-500">{t("core.fields.codexImageModel25.hint")}</p>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-stone-700">{t("core.fields.codexImageModel26.label")}</label>
+            <Select
+              value={String(config?.codex_image_model_26_name || "gpt-image-2.6-sunburst")}
+              onValueChange={(value) => setCodexImageModel26Name(value)}
+            >
+              <SelectTrigger className="h-10 rounded-xl border-stone-200 bg-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gpt-image-2.6-flare">{t("core.fields.codexImageModel26.options.flare")}</SelectItem>
+                <SelectItem value="gpt-image-2.6-sunburst">gpt-image-2.6-sunburst</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-stone-500">{t("core.fields.codexImageModel26.hint")}</p>
           </div>
           <div className="space-y-2">
             <label className="text-sm text-stone-700">{t("core.fields.defaultThinkingEffort.label")}</label>

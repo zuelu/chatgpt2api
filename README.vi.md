@@ -20,6 +20,15 @@
 > - Dự án này được xây dựng dựa trên nghiên cứu kỹ thuật đảo ngược đối với các năng lực liên quan của trang chủ ChatGPT, do đó tiềm ẩn rủi ro tài khoản bị hạn chế, tạm khóa hoặc khóa vĩnh viễn. Vui lòng không dùng tài khoản quan trọng, tài khoản thường dùng hoặc tài khoản có giá trị cao của bạn để thử nghiệm.
 
 
+## GPT Image 2.6 (v1.10.0)
+
+Giao diện, tác vụ ảnh mới và API ảnh không chỉ định `model` mặc định dùng `codex-gpt-image-2.6`, tương ứng `gpt-image-2.6-sunburst`. Cần **tài khoản Plus / Team / Pro từ Codex** đã nhập. Sunburst ưu tiên chi tiết và chỉnh sửa chính xác; Flare ưu tiên tốc độ. Có thể đổi `codex_image_model_26_name` trong cài đặt hoặc dùng trực tiếp `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`. `gpt-image-2.6` là bí danh cục bộ cho cùng tuyến Codex.
+
+Các mô hình 2 / 2.5 và cấu hình cũ vẫn được giữ lại. Nếu chỉ có tài khoản web, cần chọn rõ `gpt-image-2` hoặc `gpt-image-2.5`. Bản này hỗ trợ tạo/chỉnh sửa PNG và chất lượng đến `max`; chưa tích hợp complexity, markup, SVG hoặc GIF. Xem [tài liệu chính thức](https://developers.openai.com/api/docs/guides/image-generation).
+
+Cập nhật bằng `docker compose pull app` rồi `docker compose up -d app`. Nếu ghim phiên bản, đổi nhãn ảnh thành `ghcr.io/zuelu/chatgpt2api-maintained:1.10.0` trước. Giữ nguyên config và thư mục dữ liệu; không cần nhập lại tài khoản hay chuyển đổi lịch sử.
+
+
 ## Nhà tài trợ
 
 <table>

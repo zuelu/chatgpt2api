@@ -353,6 +353,13 @@
         "options": {
           "flare": "gpt-image-2.5-flare"
         }
+      },
+      "codexImageModel26": {
+        "label": "Mô hình công cụ Codex Image 2.6",
+        "hint": "Mặc định gpt-image-2.6-sunburst cho chi tiết và chỉnh sửa chính xác; Flare ưu tiên tốc độ. Cần tài khoản Plus / Team / Pro từ Codex.",
+        "options": {
+          "flare": "gpt-image-2.6-flare"
+        }
       }
     },
     "imageStorage": {
@@ -501,7 +508,7 @@
         "title": "Tạo ảnh",
         "input": {
           "prompt": "Prompt tạo ảnh.",
-          "model": "Tùy chọn, mặc định gpt-image-2.5.",
+          "model": "Tùy chọn, mặc định codex-gpt-image-2.6.",
           "n": "Tùy chọn, số lượng tạo, hiện giới hạn 1-4.",
           "size": "Tùy chọn, kích thước ảnh.",
           "quality": "Tùy chọn, mặc định auto.",
@@ -519,7 +526,7 @@
         "input": {
           "image": "Ảnh tham chiếu, hỗ trợ tải lên multipart, cũng hỗ trợ liên kết ảnh JSON.",
           "prompt": "Prompt chỉnh sửa.",
-          "model": "Tùy chọn, mặc định gpt-image-2.5.",
+          "model": "Tùy chọn, mặc định codex-gpt-image-2.6.",
           "n": "Tùy chọn, số lượng tạo, hiện giới hạn 1-4.",
           "size": "Tùy chọn, kích thước ảnh.",
           "quality": "Tùy chọn, mặc định auto."

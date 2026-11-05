@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.10.0 - 2026-11-05
+
++ [新增] 接入 GPT Image 2.6 Sunburst / Flare；`codex-gpt-image-2.6` 和 `gpt-image-2.6` 为本地 Codex 通道别名，也可直接使用官方工具模型名 `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`。
++ [调整] Web 工作台、新建异步图片任务和省略模型的 OpenAI 兼容图片请求统一默认 `codex-gpt-image-2.6`，实际工具模型默认为 `gpt-image-2.6-sunburst`。需要 Codex 来源的 Plus / Team / Pro 账号；仅有网页账号的部署需显式选择原网页模型。
++ [新增] 设置页提供独立的 Codex 图片 2.6 Sunburst / Flare 切换；两种模型均保留 `auto` / `low` / `medium` / `high` / `xhigh` / `max` 质量档，直接指定完整模型名时不受别名设置影响。
++ [兼容] 显式指定的 2 / 2.5 模型、原有 2.5 工具模型配置和历史任务/会话保持原模型语义；升级不迁移账号和图片数据。
++ [测试] 覆盖 2.6 模型路由、账号来源与套餐过滤、生成/编辑请求、质量档、配置默认值和旧模型兼容性，并加入发布前 CI。
++ [说明] 官方 2.6 还提供 complexity、标注编辑、SVG、GIF 等能力；本次适配范围为现有 Codex 通道的 PNG 生成与编辑，不宣称已接入这些新增参数和格式。
++ [升级] 发布 `ghcr.io/zuelu/chatgpt2api-maintained:1.10.0` 和 `latest`，提供 amd64 / arm64 镜像。
+
 ## 1.9.5 - 2026-10-23
 
 + [修复] Codex 生图请求的主模型由已退役的 `gpt-5.5` 更新为 `gpt-6.1-sol`，修复 ChatGPT 账号返回主模型不受支持的问题。

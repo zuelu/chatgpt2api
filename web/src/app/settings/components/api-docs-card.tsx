@@ -118,7 +118,7 @@ function buildDocs(t: TFunction): ApiDoc[] {
       example: (baseUrl: string, key: string) => `curl ${baseUrl}/images/generations \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${key}" \\
-  -d '{"model":"gpt-image-2.5","prompt":"${t("apiDocs.docs.imageGenerations.examplePrompt")}","n":1}'`,
+  -d '{"model":"codex-gpt-image-2.6","prompt":"${t("apiDocs.docs.imageGenerations.examplePrompt")}","n":1}'`,
     },
     {
       title: t("apiDocs.docs.imageEdits.title"),
@@ -140,7 +140,7 @@ function buildDocs(t: TFunction): ApiDoc[] {
       ],
       example: (baseUrl: string, key: string) => `curl ${baseUrl}/images/edits \\
   -H "Authorization: Bearer ${key}" \\
-  -F "model=gpt-image-2.5" \\
+  -F "model=codex-gpt-image-2.6" \\
   -F "prompt=${t("apiDocs.docs.imageEdits.examplePrompt")}" \\
   -F "image=@./input.png"`,
     },
@@ -219,7 +219,7 @@ function buildDocs(t: TFunction): ApiDoc[] {
   ];
 }
 
-const usableModels = ["gpt-image-2", "gpt-image-2.5", "codex-gpt-image-2", "codex-gpt-image-2.5", "auto", "gpt-5", "gpt-5-1", "gpt-5-2", "gpt-5-3", "gpt-5-3-mini", "gpt-5-mini"];
+const usableModels = ["codex-gpt-image-2.6", "gpt-image-2.6-sunburst", "gpt-image-2.6-flare", "gpt-image-2.6", "gpt-image-2", "gpt-image-2.5", "codex-gpt-image-2", "codex-gpt-image-2.5", "auto", "gpt-5", "gpt-5-1", "gpt-5-2", "gpt-5-3", "gpt-5-3-mini", "gpt-5-mini"];
 
 function ParamTable({ rows, t }: { rows: ParamRow[]; t: TFunction }) {
   return (

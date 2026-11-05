@@ -28,7 +28,7 @@ from services.protocol.web_search_tool import (
     search_query_from_messages,
     text_with_url_citations,
 )
-from utils.helper import extract_image_from_message_content, extract_response_prompt, has_response_image_generation_tool
+from utils.helper import DEFAULT_IMAGE_MODEL, extract_image_from_message_content, extract_response_prompt, has_response_image_generation_tool
 from utils.image_tokens import (
     count_image_content_tokens,
     count_image_output_items_tokens,
@@ -426,7 +426,7 @@ def response_events(body: dict[str, Any]) -> Iterator[dict[str, Any]]:
     prompt = extract_response_prompt(body.get("input"))
     if not prompt:
         raise HTTPException(status_code=400, detail={"error": "input text is required"})
-    model = str(body.get("model") or "gpt-image-2.5").strip() or "gpt-image-2.5"
+    model = str(body.get("model") or DEFAULT_IMAGE_MODEL).strip() or DEFAULT_IMAGE_MODEL
     image_info = extract_response_image(body.get("input"))
     if image_info:
         image_data, mime_type = image_info

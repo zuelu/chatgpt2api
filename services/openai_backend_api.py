@@ -23,7 +23,7 @@ from PIL import Image
 from services.account_service import account_service
 from services.config import config
 from services.proxy_service import proxy_settings
-from utils.helper import UpstreamHTTPError, ensure_ok, iter_sse_payloads, new_uuid, split_image_model
+from utils.helper import CODEX_IMAGE_BASE_MODELS, IMAGE_MODEL_26_TOOL_NAMES, UpstreamHTTPError, ensure_ok, iter_sse_payloads, new_uuid, split_image_model
 from utils.log import logger
 from utils.i18n import t
 from utils.pow import build_legacy_requirements_token, build_proof_token, parse_pow_resources
@@ -169,17 +169,17 @@ def _is_content_policy_error(error_msg: str) -> bool:
 def normalize_codex_image_quality(image_model: str, quality: str) -> str:
     """按 Codex image_generation 工具模型规范化质量档。
 
-    - 2.5 系列工具模型（flare / sunburst）支持 auto/low/medium/high/xhigh/max。
+    - 2.5 / 2.6 系列工具模型（flare / sunburst）支持 auto/low/medium/high/xhigh/max。
     - 其余工具模型（如 gpt-image-2）只支持 auto/low/medium/high：
       xhigh/max 收敛为 high，未知档位保持原值透传（不改变既有行为）。
     """
     value = str(quality or "auto").strip().lower() or "auto"
-    allowed = CODEX_IMAGE_25_QUALITY_TIERS if image_model in CODEX_IMAGE_MODEL_25_TOOL_NAMES else CODEX_IMAGE_QUALITY_TIERS
+    allowed = CODEX_IMAGE_25_QUALITY_TIERS if image_model in CODEX_IMAGE_MODEL_25_TOOL_NAMES | IMAGE_MODEL_26_TOOL_NAMES else CODEX_IMAGE_QUALITY_TIERS
     if value in allowed:
         return value
     if value not in CODEX_IMAGE_25_QUALITY_TIERS:
         return value
-    # xhigh / max 仅在 2.5 系列有效
+    # xhigh / max 仅在 2.5 / 2.6 系列有效
     return "high"
 
 
@@ -778,7 +778,7 @@ class OpenAIBackendAPI:
             upstream_model = config.default_upstream_model_name
         elif base_model == "gpt-image-2.5":
             upstream_model = config.default_upstream_model_name_25 or config.default_upstream_model_name
-        elif base_model in {CODEX_IMAGE_MODEL, CODEX_IMAGE_MODEL_25}:
+        elif base_model in CODEX_IMAGE_BASE_MODELS:
             upstream_model = base_model
         else:
             return "auto", ""
@@ -992,7 +992,7 @@ class OpenAIBackendAPI:
             images: list[str] | None = None,
             size: str | None = None,
             quality: str = "auto",
-            image_model: str = "gpt-image-2.5-sunburst",
+            image_model: str = "gpt-image-2.6-sunburst",
     ) -> Iterator[Dict[str, Any]]:
         if not self.access_token:
             raise RuntimeError("access_token is required for codex image endpoints")
@@ -1005,10 +1005,10 @@ class OpenAIBackendAPI:
             "input": self._codex_image_input(prompt, images or []),
             "tools": [{
                 "type": "image_generation",
-                "model": str(image_model or "gpt-image-2.5-sunburst"),
+                "model": str(image_model or "gpt-image-2.6-sunburst"),
                 "action": "edit" if images else "generate",
                 "size": str(size or "1024x1024"),
-                "quality": normalize_codex_image_quality(str(image_model or "gpt-image-2.5-sunburst"), quality),
+                "quality": normalize_codex_image_quality(str(image_model or "gpt-image-2.6-sunburst"), quality),
                 "output_format": "png",
             }],
             "tool_choice": {"type": "image_generation"},

@@ -353,6 +353,13 @@
         "options": {
           "flare": "gpt-image-2.5-flare"
         }
+      },
+      "codexImageModel26": {
+        "label": "Codex Image 2.6 tool model",
+        "hint": "Defaults to gpt-image-2.6-sunburst for detail and precise edits; Flare favors speed. Requires a Codex-source Plus / Team / Pro account.",
+        "options": {
+          "flare": "gpt-image-2.6-flare"
+        }
       }
     },
     "imageStorage": {
@@ -501,7 +508,7 @@
         "title": "Image generation",
         "input": {
           "prompt": "The image generation prompt.",
-          "model": "Optional; defaults to gpt-image-2.5.",
+          "model": "Optional; defaults to codex-gpt-image-2.6.",
           "n": "Optional; number to generate, currently limited to 1-4.",
           "size": "Optional; the image size.",
           "quality": "Optional; defaults to auto.",
@@ -519,7 +526,7 @@
         "input": {
           "image": "The reference image; supports multipart upload as well as a JSON image link.",
           "prompt": "The edit prompt.",
-          "model": "Optional; defaults to gpt-image-2.5.",
+          "model": "Optional; defaults to codex-gpt-image-2.6.",
           "n": "Optional; number to generate, currently limited to 1-4.",
           "size": "Optional; the image size.",
           "quality": "Optional; defaults to auto."

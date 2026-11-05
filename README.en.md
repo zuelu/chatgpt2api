@@ -20,6 +20,15 @@
 > - This project is implemented based on reverse-engineering research of ChatGPT's official website capabilities, and carries the risk of account restriction, temporary suspension, or permanent ban. Do not use your own important, frequently used, or high-value accounts for testing.
 
 
+## GPT Image 2.6 (v1.10.0)
+
+The workbench, new image tasks, and image API requests without `model` now default to `codex-gpt-image-2.6`, using `gpt-image-2.6-sunburst`. An imported **Codex-source Plus / Team / Pro account** is required. Sunburst favors detail and precise edits; Flare favors speed. Configure `codex_image_model_26_name` in Settings, or explicitly request `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`. `gpt-image-2.6` is a local alias for the same Codex route.
+
+Explicit 2 / 2.5 models and their settings remain available. Web-only installations must explicitly select `gpt-image-2` or `gpt-image-2.5`. This release supports existing PNG generation/editing and quality tiers through `max`; it does not add complexity, markup, SVG, or GIF support. See the [official model guide](https://developers.openai.com/api/docs/guides/image-generation).
+
+Upgrade with `docker compose pull app` then `docker compose up -d app`. If using a pinned image, first change its tag to `ghcr.io/zuelu/chatgpt2api-maintained:1.10.0`. Keep the existing config and data mounts; no account or history migration is needed.
+
+
 ## Sponsors
 
 <table>

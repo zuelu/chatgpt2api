@@ -117,7 +117,7 @@ class CodexImageRequestTests(unittest.TestCase):
                 backend, "_iter_codex_response_events", return_value=iter([event])
             ):
                 self.assertEqual(
-                    list(backend.iter_codex_image_response_events("test image", images=images)),
+                    list(backend.iter_codex_image_response_events("test image", images=images, image_model="gpt-image-2.5-sunburst")),
                     [event],
                 )
                 urlopen.assert_called_once()
