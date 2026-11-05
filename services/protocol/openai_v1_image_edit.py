@@ -15,6 +15,7 @@ from services.protocol.conversation import (
     stream_image_outputs_with_pool,
 )
 from utils.helper import DEFAULT_IMAGE_MODEL
+from services.official_image_service import OFFICIAL_IMAGE_MODELS, official_image_request, validate_image_options, reject_animated_inputs
 from utils.image_tokens import count_image_inputs_tokens, count_image_output_items_tokens, image_usage
 
 
@@ -50,6 +51,11 @@ def _composite_mask(
 
 
 def handle(body: dict[str, Any]) -> dict[str, Any] | Iterator[dict[str, Any]]:
+    body = {**body, "model": str(body.get("model") or DEFAULT_IMAGE_MODEL)}
+    validate_image_options(body, editing=True)
+    if body["model"] in OFFICIAL_IMAGE_MODELS:
+        return official_image_request(body)
+    reject_animated_inputs(body.get("images") or [])
     prompt = str(body.get("prompt") or "")
     images = body.get("images") or []
     masks = body.get("mask") or []

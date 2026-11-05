@@ -22,7 +22,8 @@ IMAGE_MODEL_26_TOOL_NAMES = {"gpt-image-2.6-sunburst", "gpt-image-2.6-flare"}
 CODEX_IMAGE_26_MODELS = {CODEX_IMAGE_MODEL_26, "gpt-image-2.6"} | IMAGE_MODEL_26_TOOL_NAMES
 DEFAULT_IMAGE_MODEL = CODEX_IMAGE_MODEL_26
 CODEX_IMAGE_BASE_MODELS = {CODEX_IMAGE_MODEL, CODEX_IMAGE_MODEL_25} | CODEX_IMAGE_26_MODELS
-BASE_IMAGE_MODELS = {"gpt-image-2", "gpt-image-2.5"} | CODEX_IMAGE_BASE_MODELS
+API_IMAGE_MODELS = {"api-gpt-image-2.6-sunburst", "api-gpt-image-2.6-flare"}
+BASE_IMAGE_MODELS = {"gpt-image-2", "gpt-image-2.5"} | CODEX_IMAGE_BASE_MODELS | API_IMAGE_MODELS
 PREFIXED_CODEX_IMAGE_MODELS = {
     f"{plan_type}-{codex_model}"
     for plan_type in IMAGE_MODEL_PLAN_TYPES

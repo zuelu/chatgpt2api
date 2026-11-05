@@ -20,6 +20,15 @@
 > - This project is implemented based on reverse-engineering research of ChatGPT's official website capabilities, and carries the risk of account restriction, temporary suspension, or permanent ban. Do not use your own important, frequently used, or high-value accounts for testing.
 
 
+## Official API and animated GIFs (v1.11.0)
+
+Use **Accounts → Import accounts → Add official API manually** to save a name and OpenAI API key. Select `api-gpt-image-2.6-sunburst` or `api-gpt-image-2.6-flare` in the workbench. This route uses the official Images API and separate API billing; the existing ChatGPT/Codex default is unchanged. Account lists do not return the API key.
+
+Text-only generation with an official model offers GIF output, frame count (2–64), and frame duration (20–2000 ms). The workbench uses 512×512 frames. API requests to `/v1/images/generations` or `/api/image-tasks/generations` can include `output_format: "gif"`, `frame_count`, and `frame_duration_ms`; asynchronous requests also need `client_task_id`. The server preserves GIF bytes in storage, previews, WebDAV, and downloads. GIF streaming and animated image editing are rejected explicitly. See the [official GIF documentation](https://developers.openai.com/api/docs/guides/image-generation#generate-animated-gif-output).
+
+Upgrade to image tag `1.11.0` or `latest`, then run `docker compose pull app` and `docker compose up -d app`. Existing data mounts remain compatible.
+
+
 ## GPT Image 2.6 (v1.10.0)
 
 The workbench, new image tasks, and image API requests without `model` now default to `codex-gpt-image-2.6`, using `gpt-image-2.6-sunburst`. An imported **Codex-source Plus / Team / Pro account** is required. Sunburst favors detail and precise edits; Flare favors speed. Configure `codex_image_model_26_name` in Settings, or explicitly request `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`. `gpt-image-2.6` is a local alias for the same Codex route.

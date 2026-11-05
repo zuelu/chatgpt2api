@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m pip install uv
           uv sync --frozen
-          uv run python -m unittest test.test_upstream_verification test.test_upstream_http_errors test.test_image_download_retry test.test_conversation_continuation test.test_image_model_25 test.test_image_model_26 test.test_image_task_service test.test_i18n
+          uv run python -m unittest test.test_upstream_verification test.test_upstream_http_errors test.test_image_download_retry test.test_conversation_continuation test.test_image_model_25 test.test_image_model_26 test.test_official_images test.test_image_storage_service test.test_image_task_service test.test_i18n
 
   docker:
     needs: test

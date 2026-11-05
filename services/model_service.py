@@ -59,7 +59,7 @@ class ModelCatalogService:
     def _active_accounts_by_type(self) -> dict[str, list[str]]:
         groups: dict[str, list[str]] = {}
         for account in self._accounts.list_accounts():
-            if not isinstance(account, dict) or account.get("status") in {"禁用", "异常"}:
+            if not isinstance(account, dict) or account.get("source_type") == "api" or account.get("status") in {"禁用", "异常"}:
                 continue
             access_token = str(account.get("access_token") or "").strip()
             account_type = self._accounts._normalize_account_type(account.get("type"))

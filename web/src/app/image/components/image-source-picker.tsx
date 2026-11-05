@@ -1,5 +1,6 @@
 "use client";
 
+import { imageMimeType } from "@/lib/image-format";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ImageOff, LoaderCircle, Upload } from "lucide-react";
 import type { TFunction } from "i18next";
@@ -42,7 +43,7 @@ function b64ToBlobUrl(b64: string) {
     for (let index = 0; index < binary.length; index += 1) {
       bytes[index] = binary.charCodeAt(index);
     }
-    const url = URL.createObjectURL(new Blob([bytes], { type: "image/png" }));
+    const url = URL.createObjectURL(new Blob([bytes], { type: imageMimeType(b64) }));
     blobUrlCache.set(b64, url);
     return url;
   } catch {
@@ -149,9 +150,9 @@ export function ImageSourcePicker({
     setLoadingKey(item.key);
     try {
       const dataUrl = item.b64
-        ? `data:image/png;base64,${item.b64}`
+        ? `data:${imageMimeType(item.b64, item.url)};base64,${item.b64}`
         : await remoteUrlToDataUrl(item.url || "", t);
-      onPick({ name: `history-${item.key}.png`, type: "image/png", dataUrl });
+      onPick({ name: `history-${item.key}.png`, type: imageMimeType(item.b64, item.url), dataUrl });
       onOpenChange(false);
     } catch (error) {
       setGalleryError(error instanceof Error ? error.message : t("sourcePicker.errors.readFailed"));

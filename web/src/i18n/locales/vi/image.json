@@ -234,5 +234,13 @@
       "confirm": "Xác nhận",
       "count": "{{count}} chú thích"
     }
+  },
+  "gif": {
+    "format": "Định dạng",
+    "frames": "Số khung",
+    "duration": "ms mỗi khung",
+    "hint": "GIF dùng khung 512×512 và tính phí API chính thức.",
+    "generationOnly": "GIF cần mô hình API chính thức và chỉ tạo từ văn bản. Chọn api-gpt-image và bỏ ảnh tham chiếu.",
+    "editUnsupported": "Chưa hỗ trợ sửa GIF động. Hãy trích xuất một khung tĩnh trước."
   }
 }

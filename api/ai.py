@@ -27,6 +27,10 @@ from utils.helper import DEFAULT_IMAGE_MODEL
 
 
 class ImageGenerationRequest(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    output_format: str = "png"
+    frame_count: int | None = None
+    frame_duration_ms: int | None = None
     prompt: str = Field(..., min_length=1)
     model: str = DEFAULT_IMAGE_MODEL
     n: int = Field(default=1, ge=1, le=4)

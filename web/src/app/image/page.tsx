@@ -1,5 +1,7 @@
 "use client";
 
+import { imageMimeType } from "@/lib/image-format";
+
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, History, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import type { TFunction } from "i18next";
@@ -475,6 +477,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const [imageWidth, setImageWidth] = useState("1024");
   const [imageHeight, setImageHeight] = useState("1024");
   const [imageQuality, setImageQuality] = useState("auto");
+  const [imageOutputFormat, setImageOutputFormat] = useState<"png" | "gif">("png");
+  const [frameCount, setFrameCount] = useState(9);
+  const [frameDurationMs, setFrameDurationMs] = useState(200);
   const [imageModel, setImageModel] = useState<ImageModel>("codex-gpt-image-2.6");
   const [imageModels, setImageModels] = useState<ImageModel[]>(["codex-gpt-image-2.6"]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -1067,6 +1072,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   };
 
   const appendReferenceImages = useCallback(async (files: File[]) => {
+    if (files.some((file) => file.type === "image/gif" || /\.gif$/i.test(file.name))) { toast.error(t("gif.editUnsupported")); return; }
     if (files.length === 0) {
       return;
     }
@@ -1152,6 +1158,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   );
 
   const handlePickEditSource = useCallback(async (picked: PickedImage) => {
+    if (picked.type === "image/gif" || picked.dataUrl.startsWith("data:image/gif")) { toast.error(t("gif.editUnsupported")); return; }
     try {
       setImageMode("edit");
       setReferenceImages([{ name: picked.name, type: picked.type, dataUrl: picked.dataUrl }]);
@@ -1176,6 +1183,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const handleImageModeChange = useCallback(
     (mode: ImageConversationMode) => {
       setImageMode(mode);
+      if (mode === "edit") setImageOutputFormat("png");
       if (mode === "edit" && referenceImageFiles.length === 0) {
         setIsSourcePickerOpen(true);
       }
@@ -1190,6 +1198,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         return;
       }
       const [file] = files;
+      if (file.type === "image/gif" || /\.gif$/i.test(file.name)) { toast.error(t("gif.editUnsupported")); return; }
       try {
         const dataUrl = await readFileAsDataUrl(file, t);
         setImageMode("edit");
@@ -1209,6 +1218,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
   const handleContinueEdit = useCallback(
     async (conversationId: string, image: StoredImage | StoredReferenceImage) => {
+      if (("dataUrl" in image && image.dataUrl.startsWith("data:image/gif")) || (!("dataUrl" in image) && imageMimeType(image.b64_json, image.url) === "image/gif")) { toast.error(t("gif.editUnsupported")); return; }
       try {
         const nextReference =
           "dataUrl" in image
@@ -1253,6 +1263,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     setImageWidth(parsedSize.width);
     setImageHeight(parsedSize.height);
     setImageQuality(turn.quality);
+    setImageOutputFormat(turn.outputFormat || "png");
+    setFrameCount(turn.frameCount || 9);
+    setFrameDurationMs(turn.frameDurationMs || 200);
     setImageModel(turn.model);
     setReferenceImages(turn.referenceImages);
     setReferenceImageFiles(
@@ -1360,7 +1373,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             const taskId = image.taskId || image.id;
             return activeTurn.mode === "edit"
               ? createImageEditTask(taskId, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload)
-              : createImageGenerationTask(taskId, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality);
+              : createImageGenerationTask(taskId, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality, { output_format: activeTurn.outputFormat || "png", ...(activeTurn.outputFormat === "gif" ? { frame_count: activeTurn.frameCount || 9, frame_duration_ms: activeTurn.frameDurationMs || 200 } : {}) });
           }),
         );
         await applyTasks(submitted);
@@ -1412,7 +1425,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
                 missingImages.map((image) =>
                   activeTurn.mode === "edit"
                     ? createImageEditTask(image.taskId || image.id, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload)
-                    : createImageGenerationTask(image.taskId || image.id, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality),
+                    : createImageGenerationTask(image.taskId || image.id, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality, { output_format: activeTurn.outputFormat || "png", ...(activeTurn.outputFormat === "gif" ? { frame_count: activeTurn.frameCount || 9, frame_duration_ms: activeTurn.frameDurationMs || 200 } : {}) }),
                 ),
               );
               if (resubmitted.length > 0) {
@@ -1492,6 +1505,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         ratio: sourceTurn.ratio,
         tier: sourceTurn.tier,
         quality: sourceTurn.quality,
+        outputFormat: sourceTurn.outputFormat,
+        frameCount: sourceTurn.frameCount,
+        frameDurationMs: sourceTurn.frameDurationMs,
         images: createLoadingImages(nextTurnId, count),
         createdAt: now,
         status: "queued",
@@ -1673,13 +1689,18 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     const effectiveImageMode: ImageConversationMode =
       imageMode === "edit" || referenceImageFiles.length > 0 ? "edit" : "generate";
 
+    if (imageOutputFormat === "gif" && (effectiveImageMode === "edit" || !imageModel.startsWith("api-gpt-image-"))) {
+      toast.error(t("gif.generationOnly"));
+      return;
+    }
+
     const targetConversation = selectedConversationId
       ? conversationsRef.current.find((conversation) => conversation.id === selectedConversationId) ?? null
       : null;
     const now = new Date().toISOString();
     const conversationId = targetConversation?.id ?? createId();
     const turnId = createId();
-    const imageSize = `${imageWidth || 1024}x${imageHeight || 1024}`;
+    const imageSize = imageOutputFormat === "gif" ? "512x512" : `${imageWidth || 1024}x${imageHeight || 1024}`;
     const draftTurn: ImageTurn = {
       id: turnId,
       prompt,
@@ -1691,6 +1712,9 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       ratio: imageRatio,
       tier: imageTier,
       quality: imageQuality,
+      outputFormat: imageOutputFormat,
+      frameCount,
+      frameDurationMs,
       images: createLoadingImages(turnId, parsedCount),
       createdAt: now,
       status: "queued",
@@ -1846,6 +1870,12 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             imageTier={imageTier}
             imageWidth={imageWidth}
             imageHeight={imageHeight}
+            imageOutputFormat={imageOutputFormat}
+            frameCount={frameCount}
+            frameDurationMs={frameDurationMs}
+            onImageOutputFormatChange={setImageOutputFormat}
+            onFrameCountChange={setFrameCount}
+            onFrameDurationMsChange={setFrameDurationMs}
             imageQuality={imageQuality}
             imageModel={imageModel}
             imageModels={imageModels}
@@ -1866,7 +1896,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             onImageWidthChange={setImageWidth}
             onImageHeightChange={setImageHeight}
             onImageQualityChange={setImageQuality}
-            onImageModelChange={setImageModel}
+            onImageModelChange={(value) => { setImageModel(value); if (!value.startsWith("api-gpt-image-")) setImageOutputFormat("png"); }}
             onSubmit={handleSubmit}
             onPickReferenceImage={() => fileInputRef.current?.click()}
             onReferenceImageChange={

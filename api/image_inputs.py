@@ -75,6 +75,11 @@ def _payload_from_fields(fields: dict[str, Any]) -> dict[str, Any]:
         "response_format": _clean(fields.get("response_format"), "b64_json"),
         "stream": _parse_bool(fields.get("stream")),
     }
+    for field in ("output_format", "frame_count", "frame_duration_ms", "output_compression", "partial_images", "prompt_rewriter"):
+        if field in fields:
+            payload[field] = fields[field]
+    from services.official_image_service import validate_image_options
+    validate_image_options(payload, editing=True)
     if "client_task_id" in fields:
         payload["client_task_id"] = _clean(fields.get("client_task_id"))
     for field in (

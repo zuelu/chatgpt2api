@@ -251,6 +251,13 @@
       "copyFailed": "复制失败，请手动选择并复制",
       "resultWithErrors": "{{prefix}}，新增 {{added}} 个，已刷新 {{refreshed}} 个，失败 {{failed}} 个",
       "resultSuccess": "{{prefix}}，新增 {{added}} 个，跳过 {{count}} 个重复项，已自动刷新账号信息"
+    },
+    "officialApi": {
+      "title": "手动添加官方 API",
+      "description": "使用 OpenAI API 密钥调用官方 Images API，按 API 余额计费，独立于 ChatGPT 订阅。支持 GIF 动画生成；不支持 GIF 动画编辑。",
+      "name": "名称（可选）",
+      "save": "保存 API",
+      "saved": "官方 API 已保存，可在画图页面选择 api-gpt-image 模型。"
     }
   }
 }

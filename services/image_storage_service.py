@@ -16,10 +16,11 @@ from PIL import Image
 
 from services.config import DATA_DIR, config
 from utils.i18n import t
+from utils.image_formats import image_extension, image_path_media_type
 
 IMAGE_INDEX_FILE = DATA_DIR / "image_index.json"
 IMAGE_INDEX_LOCK = Lock()
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp"}
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
 
 class ImageStorageError(RuntimeError):
@@ -199,7 +200,7 @@ class ImageStorageService:
 
     def make_relative_path(self, image_data: bytes) -> str:
         file_hash = hashlib.md5(image_data).hexdigest()
-        filename = f"{int(time.time())}_{file_hash}.png"
+        filename = f"{int(time.time())}_{file_hash}{image_extension(image_data)}"
         relative_dir = Path(time.strftime("%Y"), time.strftime("%m"), time.strftime("%d"))
         return f"{relative_dir.as_posix()}/{filename}"
 
@@ -220,7 +221,7 @@ class ImageStorageService:
             stored_local = True
 
         if mode in {"webdav", "both"}:
-            remote_url = WebDAVClient(self.settings()).put(rel, image_data)
+            remote_url = WebDAVClient(self.settings()).put(rel, image_data, content_type=image_path_media_type(rel))
             stored_webdav = True
 
         dimensions = _image_dimensions(image_data)
@@ -377,7 +378,7 @@ class ImageStorageService:
                     continue
                 try:
                     payload = path.read_bytes()
-                    remote_url = client.put(rel, payload)
+                    remote_url = client.put(rel, payload, content_type=image_path_media_type(rel))
                     dimensions = _image_dimensions(payload)
                     items[rel] = {
                         **item,

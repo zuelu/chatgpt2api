@@ -240,5 +240,13 @@
       "confirm": "Confirm",
       "count": "{{count}} annotations"
     }
+  },
+  "gif": {
+    "format": "Output format",
+    "frames": "Frames",
+    "duration": "ms per frame",
+    "hint": "GIF uses 512×512 frames and official API billing.",
+    "generationOnly": "GIF requires an official API model and text-only generation. Select an api-gpt-image model and remove reference images.",
+    "editUnsupported": "Animated GIF editing is not supported. Extract a still frame explicitly first."
   }
 }

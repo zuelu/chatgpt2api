@@ -251,6 +251,13 @@
       "copyFailed": "Sao chép thất bại, hãy chọn và sao chép thủ công",
       "resultWithErrors": "{{prefix}}, thêm mới {{added}}, đã làm mới {{refreshed}}, thất bại {{failed}}",
       "resultSuccess": "{{prefix}}, thêm mới {{added}}, bỏ qua {{count}} mục trùng, đã tự động làm mới thông tin tài khoản"
+    },
+    "officialApi": {
+      "title": "Thêm API chính thức",
+      "description": "Dùng khóa OpenAI API cho Images API chính thức, tính phí riêng với gói ChatGPT. Hỗ trợ tạo GIF; không hỗ trợ chỉnh sửa GIF động.",
+      "name": "Tên (không bắt buộc)",
+      "save": "Lưu API",
+      "saved": "Đã lưu API. Chọn mô hình api-gpt-image trong trang tạo ảnh."
     }
   }
 }

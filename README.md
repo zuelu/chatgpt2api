@@ -21,6 +21,29 @@
 
 
 
+## 官方 API 与 GIF（v1.11.0）
+
+在 **号池管理 → 导入账户 → 手动添加官方 API** 中填写名称和 OpenAI API Key 后保存。画图页面选择 `api-gpt-image-2.6-sunburst`（细节优先）或 `api-gpt-image-2.6-flare`（速度优先）。这些模型调用官方 `https://api.openai.com/v1`，按 API 余额计费，与 ChatGPT 订阅和原 Codex 通道分开；原默认模型不变。账号列表不回显密钥。
+
+官方模型的文生图模式可选择 **GIF**，调整帧数和每帧时长；工作台使用 512×512 帧，历史记录与下载保留动画。也可通过 API 调用：
+
+```json
+{
+  "model": "api-gpt-image-2.6-sunburst",
+  "prompt": "一颗橙色小球在白色背景上轻轻弹跳并回到原位，无缝循环",
+  "output_format": "gif",
+  "frame_count": 9,
+  "frame_duration_ms": 200,
+  "size": "512x512",
+  "quality": "low"
+}
+```
+
+此 JSON 可发送至 `POST /v1/images/generations`；异步 `POST /api/image-tasks/generations` 另需 `client_task_id`。返回的 `b64_json` 解码后是 GIF，或使用返回的 `.gif` URL。帧数范围 2–64，每帧时长 20–2000 毫秒（上游按 10 毫秒取整），尺寸与总像素预算由官方校验。不支持 GIF 流式输出、压缩参数或 GIF 动画编辑；带动画的编辑输入也会明确拒绝，避免静默丢帧。原 Codex 账号无法生成原生 GIF，指定 GIF 时必须选择官方 API 模型。详见 [OpenAI 官方 GIF 文档](https://developers.openai.com/api/docs/guides/image-generation#generate-animated-gif-output)。
+
+更新固定镜像标签至 `ghcr.io/zuelu/chatgpt2api-maintained:1.11.0`，或沿用 `latest`，执行 `docker compose pull app` 和 `docker compose up -d app` 即可；配置、账号和历史数据无需迁移。
+
+
 ## GPT Image 2.6（v1.10.0）
 
 - 工作台、新图片任务和图片 API 省略 `model` 时，默认使用 `codex-gpt-image-2.6`，对应 `gpt-image-2.6-sunburst`。需要已导入的 **Codex 来源 Plus / Team / Pro 账号**。

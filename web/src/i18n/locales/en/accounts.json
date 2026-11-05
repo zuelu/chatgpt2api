@@ -264,6 +264,13 @@
       "resultWithErrors": "{{prefix}}, added {{added}}, refreshed {{refreshed}}, failed {{failed}}",
       "resultSuccess_one": "{{prefix}}, added {{added}}, skipped {{count}} duplicate, account info refreshed automatically",
       "resultSuccess_other": "{{prefix}}, added {{added}}, skipped {{count}} duplicates, account info refreshed automatically"
+    },
+    "officialApi": {
+      "title": "Add official API manually",
+      "description": "Use an OpenAI API key for the official Images API. API billing is separate from ChatGPT subscriptions. GIF generation is supported; animated GIF editing is not.",
+      "name": "Name (optional)",
+      "save": "Save API",
+      "saved": "Official API saved. Select an api-gpt-image model in the workbench."
     }
   }
 }

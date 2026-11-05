@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## 1.11.0 - 2026-11-05
+
++ [新增] 号池「导入账户」新增手动添加官方 OpenAI API，支持名称与独立 API Key；密钥保存在服务器数据后端，账号列表返回稳定标识而不回显密钥。
++ [新增] 官方 Images API 通道提供 `api-gpt-image-2.6-sunburst` / `api-gpt-image-2.6-flare` 模型，与现有 ChatGPT/Codex 账号分开调度、刷新和计费，不改变原有默认 PNG 通道。
++ [新增] 官方 API 支持原生 GIF 生成，工作台可选 GIF、2–64 帧、每帧 20–2000 毫秒；工作台 GIF 使用 512×512 画面，API 可传入官方允许的尺寸。GIF 不支持流式输出。
++ [修复] 保存、图库、WebDAV、浏览器预览和下载识别实际图片格式；GIF 原始字节和动画帧不再被标为 PNG。
++ [修复] 明确拒绝 Codex GIF、GIF 输出编辑和动画输入编辑，防止忽略参数、静默输出静态 PNG 或把动画压成首帧。
++ [测试] 增加官方 API 账号保存与密钥脱敏、独立调度、GIF 参数/字节/存储、错误处理与并发槽位释放验证，发布前自动运行。
++ [说明] 官方 API 按 API 余额计费，与 ChatGPT 订阅分开；GIF 动画编辑不在官方 Images API 支持范围内。不会将已有 PNG 请求自动切换到付费 API。
+
 ## 1.10.0 - 2026-11-05
 
 + [新增] 接入 GPT Image 2.6 Sunburst / Flare；`codex-gpt-image-2.6` 和 `gpt-image-2.6` 为本地 Codex 通道别名，也可直接使用官方工具模型名 `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`。

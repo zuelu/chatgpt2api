@@ -21,6 +21,12 @@ type ImageComposerProps = {
   imageWidth: string;
   imageHeight: string;
   imageQuality: string;
+  imageOutputFormat: "png" | "gif";
+  frameCount: number;
+  frameDurationMs: number;
+  onImageOutputFormatChange: (value: "png" | "gif") => void;
+  onFrameCountChange: (value: number) => void;
+  onFrameDurationMsChange: (value: number) => void;
   imageModel: ImageModel;
   imageModels: ImageModel[];
   availableQuota: string;
@@ -103,6 +109,7 @@ export function ImageComposer({
   imageWidth,
   imageHeight,
   imageQuality,
+  imageOutputFormat, frameCount, frameDurationMs, onImageOutputFormatChange, onFrameCountChange, onFrameDurationMsChange,
   imageModel,
   imageModels,
   availableQuota,
@@ -400,6 +407,20 @@ export function ImageComposer({
               onOpenChange={setLightboxOpen}
               onIndexChange={setLightboxIndex}
             />
+            {imageModel.startsWith("api-gpt-image-") && imageMode !== "edit" && referenceImages.length === 0 ? (
+              <div className="flex flex-wrap items-center gap-2 px-4 pt-3 text-sm">
+                <label className="flex items-center gap-2">{t("gif.format")}
+                  <select aria-label={t("gif.format")} className="rounded-lg border border-stone-200 bg-white p-1" value={imageOutputFormat} onChange={(e) => onImageOutputFormatChange(e.target.value as "png" | "gif")}>
+                    <option value="png">PNG</option><option value="gif">GIF</option>
+                  </select>
+                </label>
+                {imageOutputFormat === "gif" ? <>
+                  <label className="flex items-center gap-1">{t("gif.frames")}<input aria-label={t("gif.frames")} type="number" min={2} max={64} className="w-16 rounded border p-1" value={frameCount} onChange={(e) => onFrameCountChange(Number(e.target.value))} /></label>
+                  <label className="flex items-center gap-1">{t("gif.duration")}<input aria-label={t("gif.duration")} type="number" min={20} max={2000} step={10} className="w-20 rounded border p-1" value={frameDurationMs} onChange={(e) => onFrameDurationMsChange(Number(e.target.value))} /></label>
+                  <span className="text-xs text-stone-500">{t("gif.hint")}</span>
+                </> : null}
+              </div>
+            ) : null}
             <Textarea
               ref={textareaRef}
               value={prompt}

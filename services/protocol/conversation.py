@@ -289,16 +289,20 @@ def format_image_result(
         if not b64_json:
             continue
         revised_prompt = str(item.get("revised_prompt") or prompt).strip() or prompt
+        from utils.image_formats import image_media_type
+        mime_type = image_media_type(base64.b64decode(b64_json))
         if response_format == "b64_json":
             data.append({
                 "b64_json": b64_json,
                 "url": save_image_bytes(base64.b64decode(b64_json), base_url),
                 "revised_prompt": revised_prompt,
+                "mime_type": mime_type,
             })
         else:
             data.append({
                 "url": save_image_bytes(base64.b64decode(b64_json), base_url),
                 "revised_prompt": revised_prompt,
+                "mime_type": mime_type,
             })
     result: dict[str, Any] = {"created": created or int(time.time()), "data": data}
     if message and not data:
@@ -1517,6 +1521,17 @@ def _generate_single_image(
     该函数在独立线程中运行，每个线程使用不同的账号，
     实现并行生图，避免串行超时阻塞。
     """
+    if request.model.startswith("api-gpt-image-"):
+        if request.retain_conversation:
+            raise ImageGenerationError("Official Images API does not support retained ChatGPT conversation bindings.", status_code=400, code="CONVERSATION_BINDING_UNSUPPORTED")
+        from services.official_image_service import official_image_request
+        from utils.image_formats import image_media_type
+        images = []
+        for encoded in request.images or []:
+            data = base64.b64decode(encoded.split(",", 1)[-1])
+            images.append((data, "image.png", image_media_type(data)))
+        result = official_image_request({"model": request.model, "prompt": request.prompt, "n": 1, "size": request.size, "quality": request.quality, "images": images, "response_format": request.response_format, "base_url": request.base_url})
+        return [ImageOutput(kind="result", model=request.model, index=index, total=total, data=result["data"])]
     if request.retain_conversation:
         return _generate_bound_single_image(request, index, total)
 

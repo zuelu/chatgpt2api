@@ -144,7 +144,7 @@ class AccountService:
             return False
         if account.get("status") in {"禁用", "限流", "异常"}:
             return False
-        return int(account.get("quota") or 0) > 0
+        return account.get("source_type") == "api" or int(account.get("quota") or 0) > 0
 
     @classmethod
     def _account_matches_plan_type(cls, account: dict, plan_type: str | None = None) -> bool:
@@ -159,7 +159,7 @@ class AccountService:
     @classmethod
     def _account_matches_source_type(cls, account: dict, source_type: str | None = None) -> bool:
         if not source_type:
-            return True
+            return cls._normalize_source_type(account.get("source_type")) != "api"
         return cls._normalize_source_type(account.get("source_type")) == cls._normalize_source_type(source_type)
 
     @classmethod
@@ -1075,6 +1075,8 @@ class AccountService:
     @staticmethod
     def _image_route(model: str) -> tuple[str | None, str | None, tuple[str, ...] | None]:
         plan_type, _ = split_image_model(model)
+        if str(model).startswith("api-gpt-image-"):
+            return None, "api", None
         codex_model = is_codex_image_model(model)
         return (
             plan_type,
@@ -1226,6 +1228,7 @@ class AccountService:
             result = []
             for item in self._accounts.values():
                 account = dict(item)
+                account.pop("api_key", None)
                 token = account.get("access_token") or ""
                 account["image_inflight"] = int(self._image_inflight.get(token, 0))
                 result.append(account)
@@ -1331,7 +1334,7 @@ class AccountService:
                 if account is not None:
                     self._accounts[access_token] = account
             self._save_accounts()
-            items = [dict(item) for item in self._accounts.values()]
+            items = [{key: value for key, value in item.items() if key != "api_key"} for item in self._accounts.values()]
             log_service.add(LOG_TYPE_ACCOUNT, f"新增 {added} 个账号，跳过 {skipped} 个",
                             {"added": added, "skipped": skipped})
         return {"added": added, "skipped": skipped, "items": items}
@@ -1357,7 +1360,7 @@ class AccountService:
                     self._index = 0
                 self._save_accounts()
                 log_service.add(LOG_TYPE_ACCOUNT, f"删除 {removed} 个账号", {"removed": removed})
-            items = [dict(item) for item in self._accounts.values()]
+            items = [{key: value for key, value in item.items() if key != "api_key"} for item in self._accounts.values()]
         return {"removed": removed, "items": items}
 
     def update_account(self, access_token: str, updates: dict, quiet: bool = False) -> dict | None:
@@ -1381,7 +1384,9 @@ class AccountService:
             if not quiet:
                 log_service.add(LOG_TYPE_ACCOUNT, "更新账号",
                                 {"token": anonymize_token(access_token), "status": account.get("status")})
-            return dict(account)
+            public = dict(account)
+            public.pop("api_key", None)
+            return public
         return None
 
     def _record_refresh_success(self, access_token: str) -> None:
@@ -1458,8 +1463,9 @@ class AccountService:
             next_item["last_used_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if success:
                 next_item["success"] = int(next_item.get("success") or 0) + 1
-                next_item["quota"] = max(0, int(next_item.get("quota") or 0) - 1)
-                if next_item["quota"] == 0:
+                if next_item.get("source_type") != "api":
+                    next_item["quota"] = max(0, int(next_item.get("quota") or 0) - 1)
+                if next_item["quota"] == 0 and next_item.get("source_type") != "api":
                     next_item["status"] = "限流"
                     next_item["restore_at"] = next_item.get("restore_at") or None
                 elif next_item.get("status") == "限流":
@@ -1487,6 +1493,19 @@ class AccountService:
     ) -> dict[str, Any] | None:
         if not access_token:
             raise ValueError("access_token is required")
+
+        existing = self.get_account(access_token) or {}
+        if existing.get("source_type") == "api":
+            if event == "get_available_access_token":
+                return existing
+            from services.official_image_service import OfficialImagesClient, OfficialAPIError
+            try:
+                OfficialImagesClient(str(existing.get("api_key") or "")).check()
+            except OfficialAPIError as error:
+                self.update_account(access_token, {"last_refresh_error": str(error), "last_refresh_error_at": self._now()}, quiet=True)
+                raise RuntimeError(str(error)) from None
+            self.update_account(access_token, {"last_refresh_error": None, "last_refresh_error_at": None}, quiet=True)
+            return self.get_account(access_token)
 
         active_token = self.refresh_access_token(access_token, event=f"{event}:preflight") or access_token
         try:
@@ -1648,7 +1667,7 @@ class AccountService:
     ) -> dict[str, Any]:
         access_tokens = list(dict.fromkeys(token for token in access_tokens if token))
         if not access_tokens:
-            items = self.list_accounts()
+            items = [{key: value for key, value in item.items() if key != "api_key"} for item in self._accounts.values()]
             result = {"refreshed": 0, "errors": [], "items": items, "relogined": 0}
             if progress_id:
                 self.finish_refresh_progress(progress_id, result)

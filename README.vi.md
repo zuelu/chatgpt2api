@@ -20,6 +20,15 @@
 > - Dự án này được xây dựng dựa trên nghiên cứu kỹ thuật đảo ngược đối với các năng lực liên quan của trang chủ ChatGPT, do đó tiềm ẩn rủi ro tài khoản bị hạn chế, tạm khóa hoặc khóa vĩnh viễn. Vui lòng không dùng tài khoản quan trọng, tài khoản thường dùng hoặc tài khoản có giá trị cao của bạn để thử nghiệm.
 
 
+## API chính thức và GIF động (v1.11.0)
+
+Trong **Tài khoản → Nhập tài khoản → Thêm API chính thức**, lưu tên và khóa OpenAI API. Chọn `api-gpt-image-2.6-sunburst` hoặc `api-gpt-image-2.6-flare` để dùng Images API chính thức, tính phí API riêng với ChatGPT. Mô hình mặc định hiện có được giữ nguyên; danh sách tài khoản không trả lại khóa API.
+
+Chế độ tạo từ văn bản có đầu ra GIF, 2–64 khung, 20–2000 ms mỗi khung; giao diện dùng khung 512×512. API tạo ảnh nhận `output_format: "gif"`, `frame_count`, `frame_duration_ms`; tác vụ bất đồng bộ cần thêm `client_task_id`. Lưu trữ, xem trước, WebDAV và tải xuống giữ nguyên GIF. Không hỗ trợ truyền GIF dạng luồng hoặc chỉnh sửa ảnh động; yêu cầu không hợp lệ được báo lỗi rõ ràng. Xem [tài liệu chính thức](https://developers.openai.com/api/docs/guides/image-generation#generate-animated-gif-output).
+
+Cập nhật nhãn ảnh `1.11.0` hoặc `latest`, chạy `docker compose pull app` và `docker compose up -d app`. Không cần chuyển đổi dữ liệu.
+
+
 ## GPT Image 2.6 (v1.10.0)
 
 Giao diện, tác vụ ảnh mới và API ảnh không chỉ định `model` mặc định dùng `codex-gpt-image-2.6`, tương ứng `gpt-image-2.6-sunburst`. Cần **tài khoản Plus / Team / Pro từ Codex** đã nhập. Sunburst ưu tiên chi tiết và chỉnh sửa chính xác; Flare ưu tiên tốc độ. Có thể đổi `codex_image_model_26_name` trong cài đặt hoặc dùng trực tiếp `gpt-image-2.6-sunburst` / `gpt-image-2.6-flare`. `gpt-image-2.6` là bí danh cục bộ cho cùng tuyến Codex.

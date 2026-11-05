@@ -29,9 +29,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createAccounts,
+  createOfficialAPIAccount,
   finishOAuthLogin,
   startOAuthLogin,
   type Account,
@@ -40,7 +42,7 @@ import {
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-type ImportMethod = "menu" | "token" | "session" | "codex-auth" | "account-json" | "oauth";
+type ImportMethod = "official-api" | "menu" | "token" | "session" | "codex-auth" | "account-json" | "oauth";
 
 type AccountImportDialogProps = {
   disabled?: boolean;
@@ -255,6 +257,8 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [method, setMethod] = useState<ImportMethod>("menu");
+  const [apiName, setApiName] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [tokenInput, setTokenInput] = useState("");
   const [sessionInput, setSessionInput] = useState("");
   const [codexAuthInput, setCodexAuthInput] = useState("");
@@ -271,6 +275,8 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
 
   const resetState = () => {
     setMethod("menu");
+    setApiName("");
+    setApiKey("");
     setTokenInput("");
     setSessionInput("");
     setCodexAuthInput("");
@@ -326,6 +332,19 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleImportOfficialAPI = async () => {
+    setIsSubmitting(true);
+    try {
+      const data = await createOfficialAPIAccount(apiName.trim(), apiKey.trim());
+      onImported(data.items);
+      setOpen(false);
+      resetState();
+      toast.success(t("importDialog.officialApi.saved"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("importDialog.toasts.importFailed"));
+    } finally { setIsSubmitting(false); }
   };
 
   const handleImportTokenText = async () => {
@@ -524,6 +543,18 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
   };
 
   const renderMethodBody = () => {
+    if (method === "official-api") {
+      return <div className="space-y-4">
+        <Button type="button" variant="ghost" onClick={() => setMethod("menu")}>{t("importDialog.back")}</Button>
+        <label className="block space-y-2 text-sm"><span>{t("importDialog.officialApi.name")}</span>
+          <Input value={apiName} maxLength={80} onChange={(e) => setApiName(e.target.value)} placeholder="Official OpenAI API" />
+        </label>
+        <label className="block space-y-2 text-sm"><span>OpenAI API Key</span>
+          <Input type="password" autoComplete="off" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-…" />
+        </label>
+        <p className="text-sm leading-6 text-stone-500">{t("importDialog.officialApi.description")}</p>
+      </div>;
+    }
     if (method === "token") {
       const tokenCount = splitTokens(tokenInput).length;
 
@@ -795,6 +826,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
 
     return (
       <div className="space-y-3">
+        <MethodCard title={t("importDialog.officialApi.title")} description={t("importDialog.officialApi.description")} icon={KeyRound} onClick={() => setMethod("official-api")} />
         <MethodCard
           title={t("importDialog.menu.oauth.title")}
           description={t("importDialog.menu.oauth.description")}
@@ -865,7 +897,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
         <DialogContent showCloseButton={false} className="flex max-h-[85vh] w-[min(92vw,580px)] flex-col overflow-hidden rounded-2xl p-6">
           <DialogHeader className="shrink-0 gap-2">
             <DialogTitle>
-              {method === "menu"
+              {method === "official-api" ? t("importDialog.officialApi.title") : method === "menu"
                 ? t("importDialog.title.menu")
                 : method === "token"
                   ? t("importDialog.title.token")
@@ -878,7 +910,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
                       : t("importDialog.title.accountJsonDialog")}
             </DialogTitle>
             <DialogDescription className="text-sm leading-6">
-              {method === "menu"
+              {method === "official-api" ? t("importDialog.officialApi.description") : method === "menu"
                 ? t("importDialog.description.menu")
                 : method === "token"
                   ? t("importDialog.description.token")
@@ -905,6 +937,7 @@ export function AccountImportDialog({ disabled, onImported }: AccountImportDialo
             >
               {tCommon("canvasDialog.cancel")}
             </Button>
+            {method === "official-api" ? <Button onClick={() => void handleImportOfficialAPI()} disabled={footerDisabled || !apiKey.trim()}>{isSubmitting ? <LoaderCircle className="size-4 animate-spin" /> : null}{t("importDialog.officialApi.save")}</Button> : null}
             {method === "token" ? (
               <Button
                 className="h-10 rounded-xl bg-stone-950 px-5 text-white hover:bg-stone-800"

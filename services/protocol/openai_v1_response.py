@@ -435,6 +435,10 @@ def response_events(body: dict[str, Any]) -> Iterator[dict[str, Any]]:
         images = None
     input_image_tokens = count_image_content_tokens(_input_image_parts(body.get("input")), model)
     tool = response_image_tool(body)
+    from services.official_image_service import validate_image_options
+    options = validate_image_options({**tool, "model": model, "stream": False}, editing=bool(image_info))
+    if options["output_format"] != "png":
+        raise HTTPException(400, detail={"error": "Use /v1/images/generations for GIF or other explicit output formats."})
     image_outputs = stream_image_outputs_with_pool(ConversationRequest(
         prompt=prompt,
         model=model,

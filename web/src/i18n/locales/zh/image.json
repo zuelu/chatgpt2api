@@ -234,5 +234,13 @@
       "confirm": "确定",
       "count": "{{count}} 条标注"
     }
+  },
+  "gif": {
+    "format": "输出格式",
+    "frames": "帧数",
+    "duration": "每帧毫秒",
+    "hint": "GIF 使用 512×512 画面，按官方 API 计费。",
+    "generationOnly": "GIF 仅支持官方 API 模型的纯文字生成，请选择 api-gpt-image 模型并移除参考图。",
+    "editUnsupported": "暂不支持 GIF 动画编辑，请先明确提取一张静态帧。"
   }
 }

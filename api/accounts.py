@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import io
+import hashlib
 import json
 import re
 import uuid
@@ -12,7 +13,7 @@ from typing import Any, Literal
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 from services.auth_service import auth_service
 
@@ -49,6 +50,11 @@ class UserKeyUpdateRequest(BaseModel):
 class AccountCreateRequest(BaseModel):
     tokens: list[str] = Field(default_factory=list)
     accounts: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class OfficialAPIAccountRequest(BaseModel):
+    name: str = Field(default="Official OpenAI API", max_length=80)
+    api_key: SecretStr
 
 
 class AccountDeleteRequest(BaseModel):
@@ -228,6 +234,19 @@ def create_router() -> APIRouter:
     async def get_accounts(authorization: str | None = Header(default=None)):
         require_admin(authorization)
         return {"items": account_service.list_accounts()}
+
+    @router.post("/api/accounts/official-api")
+    async def create_official_api_account(body: OfficialAPIAccountRequest, authorization: str | None = Header(default=None)):
+        require_admin(authorization)
+        key = body.api_key.get_secret_value().strip()
+        if not key.startswith("sk-") or len(key) < 20 or len(key) > 512:
+            raise HTTPException(400, detail={"error": "Enter a valid OpenAI API key."})
+        account_id = "api:" + hashlib.sha256(key.encode()).hexdigest()[:24]
+        result = await run_in_threadpool(account_service.add_account_items, [{
+            "access_token": account_id, "api_key": key, "source_type": "api", "type": "API",
+            "email": body.name.strip() or "Official OpenAI API", "status": "正常", "quota": 0,
+        }])
+        return {"added": result.get("added", 0), "skipped": result.get("skipped", 0), "items": account_service.list_accounts()}
 
     @router.post("/api/accounts")
     async def create_accounts(body: AccountCreateRequest, authorization: str | None = Header(default=None)):

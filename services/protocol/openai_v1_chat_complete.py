@@ -170,6 +170,10 @@ def chat_image_args(body: dict[str, Any]) -> tuple[str, str, int, list[tuple[byt
         (data, f"image_{idx}.png", mime)
         for idx, (data, mime) in enumerate(extract_chat_image(body), start=1)
     ]
+    from services.official_image_service import validate_image_options
+    options = validate_image_options({**body, "model": model}, editing=bool(images))
+    if options["output_format"] != "png":
+        raise HTTPException(400, detail={"error": "Use /v1/images/generations for GIF or other explicit output formats."})
     return model, prompt, parse_image_count(body.get("n")), images
 
 

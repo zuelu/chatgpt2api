@@ -89,6 +89,8 @@ def _request_hash(mode: str, payload: dict[str, Any]) -> str:
         "image_sha256": image_hashes,
         "mask_sha256": mask_hashes,
     }
+    if payload.get("output_format") not in {None, "png"}:
+        contract.update({k: payload.get(k) for k in ("output_format", "frame_count", "frame_duration_ms")})
     encoded = json.dumps(contract, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
@@ -151,6 +153,10 @@ def _public_task(task: dict[str, Any]) -> dict[str, Any]:
     ):
         if task.get(field):
             item[field] = task.get(field)
+    item["output_format"] = task.get("output_format", "png")
+    if task.get("output_format") == "gif":
+        item["frame_count"] = task.get("frame_count")
+        item["frame_duration_ms"] = task.get("frame_duration_ms")
     if task.get("data") is not None:
         item["data"] = task.get("data")
     if task.get("usage") is not None:
@@ -205,6 +211,9 @@ class ImageTaskService:
         model: str,
         size: str | None,
         quality: str = "auto",
+        output_format: str = "png",
+        frame_count: int | None = None,
+        frame_duration_ms: int | None = None,
         base_url: str = "",
         provider_binding_id: str = "",
         provider_account_identity: str = "",
@@ -219,6 +228,9 @@ class ImageTaskService:
             "n": 1,
             "size": size,
             "quality": quality,
+            "output_format": output_format,
+            "frame_count": frame_count,
+            "frame_duration_ms": frame_duration_ms,
             "response_format": "url",
             "base_url": base_url,
             "provider_binding_id": provider_binding_id,
@@ -239,6 +251,7 @@ class ImageTaskService:
         model: str,
         size: str | None,
         quality: str = "auto",
+        output_format: str = "png",
         base_url: str = "",
         images: list[tuple[bytes, str, str]] | None = None,
         masks: list[tuple[bytes, str, str]] | None = None,
@@ -257,6 +270,7 @@ class ImageTaskService:
             "n": 1,
             "size": size,
             "quality": quality,
+            "output_format": output_format,
             "response_format": "url",
             "base_url": base_url,
             "provider_binding_id": provider_binding_id,
@@ -324,6 +338,9 @@ class ImageTaskService:
                 "model": _clean(payload.get("model"), DEFAULT_IMAGE_MODEL),
                 "size": _clean(payload.get("size")),
                 "quality": _clean(payload.get("quality"), "auto"),
+                "output_format": _clean(payload.get("output_format"), "png"),
+                "frame_count": payload.get("frame_count"),
+                "frame_duration_ms": payload.get("frame_duration_ms"),
                 "base_url": _clean(payload.get("base_url")),
                 "created_at": now,
                 "updated_at": now,
@@ -609,6 +626,9 @@ class ImageTaskService:
                 "model": _clean(item.get("model"), "gpt-image-2.5"),
                 "size": _clean(item.get("size")),
                 "quality": _clean(item.get("quality"), "auto"),
+                "output_format": _clean(item.get("output_format"), "png"),
+                "frame_count": item.get("frame_count"),
+                "frame_duration_ms": item.get("frame_duration_ms"),
                 "created_at": _clean(item.get("created_at"), _now_iso()),
                 "updated_at": _clean(item.get("updated_at"), _clean(item.get("created_at"), _now_iso())),
                 "created_ts": item.get("created_ts"),

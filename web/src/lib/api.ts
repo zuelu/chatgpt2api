@@ -525,7 +525,13 @@ export async function editImage(
   );
 }
 
-export async function createImageGenerationTask(clientTaskId: string, prompt: string, model?: ImageModel, size?: string, quality = "auto") {
+export async function createOfficialAPIAccount(name: string, apiKey: string) {
+  return httpRequest<{ added: number; skipped: number; items: Account[] }>("/api/accounts/official-api", {
+    method: "POST", body: { name, api_key: apiKey },
+  });
+}
+
+export async function createImageGenerationTask(clientTaskId: string, prompt: string, model?: ImageModel, size?: string, quality = "auto", options?: { output_format?: string; frame_count?: number; frame_duration_ms?: number }) {
   return httpRequest<ImageTask>("/api/image-tasks/generations", {
     method: "POST",
     body: {
@@ -534,6 +540,7 @@ export async function createImageGenerationTask(clientTaskId: string, prompt: st
       ...(model ? { model } : {}),
       ...(size ? { size } : {}),
       quality,
+      ...options,
     },
   });
 }

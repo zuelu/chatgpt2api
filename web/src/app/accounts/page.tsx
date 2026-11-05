@@ -110,6 +110,7 @@ function formatCompact(value: number) {
 }
 
 function formatQuota(account: Account) {
+  if (account.source_type === "api") return "API";
   return String(Math.max(0, account.quota));
 }
 

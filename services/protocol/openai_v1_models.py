@@ -4,7 +4,7 @@ from typing import Any
 
 from services.account_service import account_service
 from services.model_service import model_catalog_service
-from utils.helper import CODEX_IMAGE_BASE_MODELS
+from utils.helper import CODEX_IMAGE_BASE_MODELS, API_IMAGE_MODELS
 
 
 def list_models() -> dict[str, Any]:
@@ -18,7 +18,7 @@ def list_models() -> dict[str, Any]:
     web_image_accounts = [
         account
         for account in accounts
-        if isinstance(account, dict)
+        if isinstance(account, dict) and account.get("source_type") != "api"
     ]
     codex_types = {
         normalized
@@ -27,6 +27,9 @@ def list_models() -> dict[str, Any]:
            and account_service._normalize_source_type(account.get("source_type")) == "codex"
            and (normalized := account_service._normalize_account_type(account.get("type")))
     }
+
+    if any(a.get("source_type") == "api" and a.get("status") not in {"禁用", "异常"} for a in accounts):
+        dynamic_models.update(API_IMAGE_MODELS)
 
     if web_image_accounts:
         dynamic_models.add("gpt-image-2")
