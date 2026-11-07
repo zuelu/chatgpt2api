@@ -156,6 +156,12 @@ function filterImageModels(items: Model[]): ImageModel[] {
     .filter((id, index, list) => id.toLowerCase().includes("image") && list.indexOf(id) === index);
 }
 
+function officialFormatModel(model: ImageModel, available: ImageModel[]): ImageModel {
+  if (model.startsWith("api-gpt-image-")) return model;
+  const preferred = model.endsWith("-flare") ? "api-gpt-image-2.6-flare" : "api-gpt-image-2.6-sunburst";
+  return available.includes(preferred) ? preferred : available.find((value) => value.startsWith("api-gpt-image-")) || preferred;
+}
+
 function normalizeStoredImageModel(value: string | null, availableModels: ImageModel[]): ImageModel {
   const normalized = String(value || "").trim();
   if (normalized && availableModels.includes(normalized)) {
@@ -477,7 +483,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const [imageWidth, setImageWidth] = useState("1024");
   const [imageHeight, setImageHeight] = useState("1024");
   const [imageQuality, setImageQuality] = useState("auto");
-  const [imageOutputFormat, setImageOutputFormat] = useState<"png" | "gif">("png");
+  const [imageOutputFormat, setImageOutputFormat] = useState<"png" | "gif" | "svg">("png");
   const [frameCount, setFrameCount] = useState(9);
   const [frameDurationMs, setFrameDurationMs] = useState(200);
   const [imageModel, setImageModel] = useState<ImageModel>("codex-gpt-image-2.6");
@@ -1072,6 +1078,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   };
 
   const appendReferenceImages = useCallback(async (files: File[]) => {
+    if (files.some((file) => file.type === "image/svg+xml" || /\.svg$/i.test(file.name))) { toast.error(t("gif.svgEditUnsupported")); return; }
     if (files.some((file) => file.type === "image/gif" || /\.gif$/i.test(file.name))) { toast.error(t("gif.editUnsupported")); return; }
     if (files.length === 0) {
       return;
@@ -1159,6 +1166,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
   const handlePickEditSource = useCallback(async (picked: PickedImage) => {
     if (picked.type === "image/gif" || picked.dataUrl.startsWith("data:image/gif")) { toast.error(t("gif.editUnsupported")); return; }
+    if (picked.type === "image/svg+xml" || picked.dataUrl.startsWith("data:image/svg")) { toast.error(t("gif.svgEditUnsupported")); return; }
     try {
       setImageMode("edit");
       setReferenceImages([{ name: picked.name, type: picked.type, dataUrl: picked.dataUrl }]);
@@ -1183,7 +1191,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const handleImageModeChange = useCallback(
     (mode: ImageConversationMode) => {
       setImageMode(mode);
-      if (mode === "edit") setImageOutputFormat("png");
+      if (mode === "edit") setImageOutputFormat((format) => format === "svg" ? "png" : format);
       if (mode === "edit" && referenceImageFiles.length === 0) {
         setIsSourcePickerOpen(true);
       }
@@ -1198,6 +1206,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         return;
       }
       const [file] = files;
+      if (file.type === "image/svg+xml" || /\.svg$/i.test(file.name)) { toast.error(t("gif.svgEditUnsupported")); return; }
       if (file.type === "image/gif" || /\.gif$/i.test(file.name)) { toast.error(t("gif.editUnsupported")); return; }
       try {
         const dataUrl = await readFileAsDataUrl(file, t);
@@ -1218,6 +1227,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
   const handleContinueEdit = useCallback(
     async (conversationId: string, image: StoredImage | StoredReferenceImage) => {
+      if (("dataUrl" in image && image.dataUrl.startsWith("data:image/svg")) || (!("dataUrl" in image) && imageMimeType(image.b64_json, image.url) === "image/svg+xml")) { toast.error(t("gif.svgEditUnsupported")); return; }
       if (("dataUrl" in image && image.dataUrl.startsWith("data:image/gif")) || (!("dataUrl" in image) && imageMimeType(image.b64_json, image.url) === "image/gif")) { toast.error(t("gif.editUnsupported")); return; }
       try {
         const nextReference =
@@ -1372,7 +1382,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           pendingImages.map((image) => {
             const taskId = image.taskId || image.id;
             return activeTurn.mode === "edit"
-              ? createImageEditTask(taskId, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload)
+              ? createImageEditTask(taskId, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload, { output_format: activeTurn.outputFormat || "png", ...(activeTurn.outputFormat === "gif" ? { frame_count: activeTurn.frameCount || 9, frame_duration_ms: activeTurn.frameDurationMs || 200 } : {}) })
               : createImageGenerationTask(taskId, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality, { output_format: activeTurn.outputFormat || "png", ...(activeTurn.outputFormat === "gif" ? { frame_count: activeTurn.frameCount || 9, frame_duration_ms: activeTurn.frameDurationMs || 200 } : {}) });
           }),
         );
@@ -1424,7 +1434,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
               const resubmitted = await Promise.all(
                 missingImages.map((image) =>
                   activeTurn.mode === "edit"
-                    ? createImageEditTask(image.taskId || image.id, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload)
+                    ? createImageEditTask(image.taskId || image.id, referenceFiles, editPrompt, activeTurn.model, activeTurn.size, activeTurn.quality, maskPayload, { output_format: activeTurn.outputFormat || "png", ...(activeTurn.outputFormat === "gif" ? { frame_count: activeTurn.frameCount || 9, frame_duration_ms: activeTurn.frameDurationMs || 200 } : {}) })
                     : createImageGenerationTask(image.taskId || image.id, activeTurn.prompt, activeTurn.model, activeTurn.size, activeTurn.quality, { output_format: activeTurn.outputFormat || "png", ...(activeTurn.outputFormat === "gif" ? { frame_count: activeTurn.frameCount || 9, frame_duration_ms: activeTurn.frameDurationMs || 200 } : {}) }),
                 ),
               );
@@ -1689,8 +1699,16 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     const effectiveImageMode: ImageConversationMode =
       imageMode === "edit" || referenceImageFiles.length > 0 ? "edit" : "generate";
 
-    if (imageOutputFormat === "gif" && (effectiveImageMode === "edit" || !imageModel.startsWith("api-gpt-image-"))) {
-      toast.error(t("gif.generationOnly"));
+    if (imageOutputFormat === "svg" && effectiveImageMode === "edit") {
+      toast.error(t("gif.svgGenerationOnly"));
+      return;
+    }
+
+    const effectiveModel = imageOutputFormat === "gif" || imageOutputFormat === "svg"
+      ? officialFormatModel(imageModel, imageModels)
+      : imageModel;
+    if (imageOutputFormat === "gif" && referenceImages.some((image) => image.maskDataUrl)) {
+      toast.error(t("gif.maskUnsupported"));
       return;
     }
 
@@ -1704,7 +1722,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
     const draftTurn: ImageTurn = {
       id: turnId,
       prompt,
-      model: imageModel,
+      model: effectiveModel,
       mode: effectiveImageMode,
       referenceImages: effectiveImageMode === "edit" ? referenceImages : [],
       count: parsedCount,
@@ -1873,7 +1891,12 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             imageOutputFormat={imageOutputFormat}
             frameCount={frameCount}
             frameDurationMs={frameDurationMs}
-            onImageOutputFormatChange={setImageOutputFormat}
+            onImageOutputFormatChange={(format) => {
+              setImageOutputFormat(format);
+              if ((format === "gif" || format === "svg") && !imageModel.startsWith("api-gpt-image-")) {
+                setImageModel(officialFormatModel(imageModel, imageModels));
+              }
+            }}
             onFrameCountChange={setFrameCount}
             onFrameDurationMsChange={setFrameDurationMs}
             imageQuality={imageQuality}
@@ -1896,7 +1919,11 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             onImageWidthChange={setImageWidth}
             onImageHeightChange={setImageHeight}
             onImageQualityChange={setImageQuality}
-            onImageModelChange={(value) => { setImageModel(value); if (!value.startsWith("api-gpt-image-")) setImageOutputFormat("png"); }}
+            onImageModelChange={(value) => {
+              setImageModel((imageOutputFormat === "gif" || imageOutputFormat === "svg") && !value.startsWith("api-gpt-image-")
+                ? officialFormatModel(value, imageModels)
+                : value);
+            }}
             onSubmit={handleSubmit}
             onPickReferenceImage={() => fileInputRef.current?.click()}
             onReferenceImageChange={

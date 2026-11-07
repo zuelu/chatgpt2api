@@ -16,11 +16,11 @@ from PIL import Image
 
 from services.config import DATA_DIR, config
 from utils.i18n import t
-from utils.image_formats import image_extension, image_path_media_type
+from utils.image_formats import image_extension, image_path_media_type, image_media_type, svg_dimensions
 
 IMAGE_INDEX_FILE = DATA_DIR / "image_index.json"
 IMAGE_INDEX_LOCK = Lock()
-IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
 
 
 class ImageStorageError(RuntimeError):
@@ -55,6 +55,8 @@ def _safe_relative_path(path: str) -> str:
 
 def _image_dimensions(payload: bytes) -> tuple[int, int] | None:
     try:
+        if image_media_type(payload) == "image/svg+xml":
+            return svg_dimensions(payload)
         with Image.open(io.BytesIO(payload)) as image:
             return image.size
     except Exception:

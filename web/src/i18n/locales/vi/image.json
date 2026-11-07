@@ -239,8 +239,12 @@
     "format": "Định dạng",
     "frames": "Số khung",
     "duration": "ms mỗi khung",
-    "hint": "GIF dùng khung 512×512 và tính phí API chính thức.",
-    "generationOnly": "GIF cần mô hình API chính thức và chỉ tạo từ văn bản. Chọn api-gpt-image và bỏ ảnh tham chiếu.",
-    "editUnsupported": "Chưa hỗ trợ sửa GIF động. Hãy trích xuất một khung tĩnh trước."
+    "hint": "GIF tự dùng API chính thức · 512×512 · Tính phí API",
+    "generationOnly": "GIF tự dùng mô hình API chính thức, hỗ trợ ảnh tham chiếu tĩnh.",
+    "editUnsupported": "Chưa hỗ trợ sửa GIF động. Hãy trích xuất một khung tĩnh trước.",
+    "svgHint": "SVG tự dùng API chính thức và tính phí API.",
+    "svgGenerationOnly": "SVG chỉ hỗ trợ tạo từ văn bản. Hãy bỏ ảnh tham chiếu.",
+    "svgEditUnsupported": "Chưa hỗ trợ sửa SVG trực tiếp. Xuất thành PNG rồi tải lên.",
+    "maskUnsupported": "GIF không hỗ trợ mặt nạ. Xóa vùng chọn rồi thử lại."
   }
 }

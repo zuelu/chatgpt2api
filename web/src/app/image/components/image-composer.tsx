@@ -21,10 +21,10 @@ type ImageComposerProps = {
   imageWidth: string;
   imageHeight: string;
   imageQuality: string;
-  imageOutputFormat: "png" | "gif";
+  imageOutputFormat: "png" | "gif" | "svg";
   frameCount: number;
   frameDurationMs: number;
-  onImageOutputFormatChange: (value: "png" | "gif") => void;
+  onImageOutputFormatChange: (value: "png" | "gif" | "svg") => void;
   onFrameCountChange: (value: number) => void;
   onFrameDurationMsChange: (value: number) => void;
   imageModel: ImageModel;
@@ -407,20 +407,21 @@ export function ImageComposer({
               onOpenChange={setLightboxOpen}
               onIndexChange={setLightboxIndex}
             />
-            {imageModel.startsWith("api-gpt-image-") && imageMode !== "edit" && referenceImages.length === 0 ? (
-              <div className="flex flex-wrap items-center gap-2 px-4 pt-3 text-sm">
+            {(
+              <div className="relative z-10 flex cursor-default flex-wrap items-center gap-2 px-4 pt-3 text-sm" onClick={(event) => event.stopPropagation()}>
                 <label className="flex items-center gap-2">{t("gif.format")}
-                  <select aria-label={t("gif.format")} className="rounded-lg border border-stone-200 bg-white p-1" value={imageOutputFormat} onChange={(e) => onImageOutputFormatChange(e.target.value as "png" | "gif")}>
-                    <option value="png">PNG</option><option value="gif">GIF</option>
+                  <select aria-label={t("gif.format")} className="min-h-10 cursor-pointer rounded-lg border border-stone-200 bg-white px-2 text-stone-900 dark:border-white/20 dark:bg-stone-900 dark:text-stone-100" value={imageOutputFormat} onChange={(e) => onImageOutputFormatChange(e.target.value as "png" | "gif" | "svg")}>
+                    <option value="png">PNG</option><option value="gif">GIF</option><option value="svg" disabled={isEditMode || referenceImages.length > 0}>SVG</option>
                   </select>
                 </label>
                 {imageOutputFormat === "gif" ? <>
-                  <label className="flex items-center gap-1">{t("gif.frames")}<input aria-label={t("gif.frames")} type="number" min={2} max={64} className="w-16 rounded border p-1" value={frameCount} onChange={(e) => onFrameCountChange(Number(e.target.value))} /></label>
+                  <label className="flex items-center gap-1">{t("gif.frames")}<input aria-label={t("gif.frames")} type="number" min={2} max={16} className="w-16 rounded border p-1" value={frameCount} onChange={(e) => onFrameCountChange(Number(e.target.value))} /></label>
                   <label className="flex items-center gap-1">{t("gif.duration")}<input aria-label={t("gif.duration")} type="number" min={20} max={2000} step={10} className="w-20 rounded border p-1" value={frameDurationMs} onChange={(e) => onFrameDurationMsChange(Number(e.target.value))} /></label>
                   <span className="text-xs text-stone-500">{t("gif.hint")}</span>
                 </> : null}
+                {imageOutputFormat === "svg" ? <span className="text-xs text-stone-500">{t("gif.svgHint")}</span> : null}
               </div>
-            ) : null}
+            )}
             <Textarea
               ref={textareaRef}
               value={prompt}

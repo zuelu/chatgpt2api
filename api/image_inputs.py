@@ -78,8 +78,9 @@ def _payload_from_fields(fields: dict[str, Any]) -> dict[str, Any]:
     for field in ("output_format", "frame_count", "frame_duration_ms", "output_compression", "partial_images", "prompt_rewriter"):
         if field in fields:
             payload[field] = fields[field]
-    from services.official_image_service import validate_image_options
-    validate_image_options(payload, editing=True)
+    from services.official_image_service import validate_image_options, resolve_image_model
+    payload["model"] = resolve_image_model(payload["model"], payload.get("output_format"))
+    payload.update(validate_image_options(payload, editing=True))
     if "client_task_id" in fields:
         payload["client_task_id"] = _clean(fields.get("client_task_id"))
     for field in (
@@ -200,7 +201,8 @@ async def parse_image_edit_request(request: Request) -> tuple[dict[str, Any], li
 
     form = await request.form()
     fields: dict[str, Any] = {}
-    for key in ("client_task_id", "prompt", "model", "n", "size", "quality", "response_format", "stream"):
+    for key in ("client_task_id", "prompt", "model", "n", "size", "quality", "response_format", "stream",
+                "output_format", "frame_count", "frame_duration_ms", "output_compression", "partial_images", "prompt_rewriter"):
         value = form.get(key)
         if isinstance(value, str):
             fields[key] = value

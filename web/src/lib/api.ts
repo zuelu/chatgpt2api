@@ -493,6 +493,7 @@ export async function editImage(
   size?: string,
   quality = "auto",
   masks?: File | File[] | null,
+  options?: { output_format?: string; frame_count?: number; frame_duration_ms?: number },
 ) {
   const formData = new FormData();
   const uploadFiles = Array.isArray(files) ? files : [files];
@@ -508,6 +509,9 @@ export async function editImage(
     formData.append("size", size);
   }
   formData.append("quality", quality);
+  for (const [name, value] of Object.entries(options || {})) {
+    if (value !== undefined) formData.append(name, String(value));
+  }
   formData.append("n", "1");
 
   // 局部编辑：mask 中透明区域表示需要修改的地方
@@ -553,6 +557,7 @@ export async function createImageEditTask(
   size?: string,
   quality = "auto",
   masks?: File | File[] | null,
+  options?: { output_format?: string; frame_count?: number; frame_duration_ms?: number },
 ) {
   const formData = new FormData();
   const uploadFiles = Array.isArray(files) ? files : [files];
@@ -569,6 +574,9 @@ export async function createImageEditTask(
     formData.append("size", size);
   }
   formData.append("quality", quality);
+  for (const [name, value] of Object.entries(options || {})) {
+    if (value !== undefined) formData.append(name, String(value));
+  }
 
   // 局部编辑：mask 中透明区域表示需要修改的地方
   const maskFiles = masks ? (Array.isArray(masks) ? masks : [masks]) : [];

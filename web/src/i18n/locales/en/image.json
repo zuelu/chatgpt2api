@@ -245,8 +245,12 @@
     "format": "Output format",
     "frames": "Frames",
     "duration": "ms per frame",
-    "hint": "GIF uses 512×512 frames and official API billing.",
-    "generationOnly": "GIF requires an official API model and text-only generation. Select an api-gpt-image model and remove reference images.",
-    "editUnsupported": "Animated GIF editing is not supported. Extract a still frame explicitly first."
+    "hint": "GIF automatically uses the official API · 512×512 · API billing applies",
+    "generationOnly": "GIF automatically uses an official API model. Still reference images are supported.",
+    "editUnsupported": "Animated GIF editing is not supported. Extract a still frame explicitly first.",
+    "svgHint": "SVG vectors automatically use the official API. API billing applies.",
+    "svgGenerationOnly": "SVG supports text generation only. Remove reference images.",
+    "svgEditUnsupported": "SVG cannot be edited directly. Export it as PNG and upload it.",
+    "maskUnsupported": "GIF does not support masks. Clear the selection and retry."
   }
 }

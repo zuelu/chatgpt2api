@@ -115,6 +115,8 @@ def create_router() -> APIRouter:
                 size=payload["size"],
                 quality=payload["quality"],
                 output_format=str(payload.get("output_format") or "png"),
+                frame_count=payload.get("frame_count"),
+                frame_duration_ms=payload.get("frame_duration_ms"),
                 base_url=resolve_image_base_url(request),
                 images=images,
                 masks=masks,

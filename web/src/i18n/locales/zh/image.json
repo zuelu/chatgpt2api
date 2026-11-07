@@ -239,8 +239,12 @@
     "format": "输出格式",
     "frames": "帧数",
     "duration": "每帧毫秒",
-    "hint": "GIF 使用 512×512 画面，按官方 API 计费。",
-    "generationOnly": "GIF 仅支持官方 API 模型的纯文字生成，请选择 api-gpt-image 模型并移除参考图。",
-    "editUnsupported": "暂不支持 GIF 动画编辑，请先明确提取一张静态帧。"
+    "hint": "GIF 自动使用官方 API · 512×512 · 按 API 计费",
+    "generationOnly": "GIF 自动使用官方 API 模型，可使用静态参考图。",
+    "editUnsupported": "暂不支持 GIF 动画编辑，请先明确提取一张静态帧。",
+    "svgHint": "SVG 矢量图自动使用官方 API，按 API 计费。",
+    "svgGenerationOnly": "SVG 仅支持文字生成，请移除参考图。",
+    "svgEditUnsupported": "SVG 暂不支持直接编辑，请先导出为 PNG 再上传。",
+    "maskUnsupported": "GIF 不支持局部遮罩，请清除选区后重试。"
   }
 }

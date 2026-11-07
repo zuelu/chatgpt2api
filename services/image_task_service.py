@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from services.official_image_service import resolve_image_model
 from services.config import DATA_DIR, config
 from services.content_filter import request_text
 from services.log_service import LOG_TYPE_CALL, log_service
@@ -224,7 +225,7 @@ class ImageTaskService:
     ) -> dict[str, Any]:
         payload = {
             "prompt": prompt,
-            "model": model,
+            "model": resolve_image_model(model, output_format),
             "n": 1,
             "size": size,
             "quality": quality,
@@ -252,6 +253,8 @@ class ImageTaskService:
         size: str | None,
         quality: str = "auto",
         output_format: str = "png",
+        frame_count: int | None = None,
+        frame_duration_ms: int | None = None,
         base_url: str = "",
         images: list[tuple[bytes, str, str]] | None = None,
         masks: list[tuple[bytes, str, str]] | None = None,
@@ -266,11 +269,13 @@ class ImageTaskService:
             "prompt": prompt,
             "images": images or [],
             "mask": masks or [],
-            "model": model,
+            "model": resolve_image_model(model, output_format),
             "n": 1,
             "size": size,
             "quality": quality,
             "output_format": output_format,
+            "frame_count": frame_count,
+            "frame_duration_ms": frame_duration_ms,
             "response_format": "url",
             "base_url": base_url,
             "provider_binding_id": provider_binding_id,

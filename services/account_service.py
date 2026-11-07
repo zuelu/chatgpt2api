@@ -52,6 +52,7 @@ class AccountService:
         self._token_refresh_lock = Lock()
         self._image_slot_condition = Condition(self._lock)
         self._index = 0
+        self._image_pool_cursors: dict[tuple, str] = {}
         self._accounts = self._load_accounts()
         self._image_inflight: dict[str, int] = {}
         self._conversation_binding_locks: dict[str, Lock] = {}
@@ -953,7 +954,14 @@ class AccountService:
                     )
                 tokens = self._list_available_candidate_tokens(excluded_tokens, plan_type, source_type, plan_types)
                 if tokens:
-                    access_token = tokens[self._index % len(tokens)]
+                    # Keep the cursor in the full eligible pool. Removing an
+                    # attempted account must not shift indices and skip its successor.
+                    ordered = self._list_ready_candidate_tokens(None, plan_type, source_type, plan_types)
+                    pool_key = (plan_type, source_type, tuple(sorted(plan_types or ())))
+                    previous = self._image_pool_cursors.get(pool_key, "")
+                    start = (ordered.index(previous) + 1) % len(ordered) if previous in ordered else 0
+                    access_token = next(token for token in ordered[start:] + ordered[:start] if token in tokens)
+                    self._image_pool_cursors[pool_key] = access_token
                     self._index += 1
                     self._image_inflight[access_token] = int(self._image_inflight.get(access_token, 0)) + 1
                     return access_token
@@ -976,6 +984,7 @@ class AccountService:
             plan_type: str | None = None,
             source_type: str | None = None,
             plan_types: set[str] | tuple[str, ...] | None = None,
+            excluded_tokens: set[str] | None = None,
     ) -> str:
         """从候选池中获取一个可用的图片生图 token。
 
@@ -983,7 +992,7 @@ class AccountService:
         限制最大尝试次数防止 token rotation 导致无限循环。
         """
         max_attempts = 20  # 防止无限循环
-        attempted_tokens: set[str] = set()
+        attempted_tokens: set[str] = set(excluded_tokens or ())
         for _attempt in range(max_attempts):
             access_token = self._acquire_next_candidate_token(
                 excluded_tokens=attempted_tokens,

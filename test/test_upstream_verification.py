@@ -77,12 +77,12 @@ class UpstreamVerificationTests(unittest.TestCase):
         backend._upload_image.assert_not_called()
         backend._prepare_image_conversation.assert_not_called()
 
-    def test_image_pool_preserves_verification_code_without_retry_or_token_rotation(self):
+    def test_image_pool_preserves_verification_code_when_eligible_pool_is_exhausted(self):
         account = conversation.account_service
         backend = mock.Mock()
         error = UpstreamVerificationRequiredError(['turnstile', 'so'])
         with (
-            mock.patch.object(account, 'get_available_access_token', return_value='test-token') as get_token,
+            mock.patch.object(account, 'get_available_access_token', side_effect=['test-token', RuntimeError('no available image quota')]) as get_token,
             mock.patch.object(account, 'get_account', return_value={'email': 'test@example.test'}),
             mock.patch.object(account, 'mark_image_result') as mark,
             mock.patch.object(account, 'refresh_access_token') as refresh,
@@ -93,7 +93,7 @@ class UpstreamVerificationTests(unittest.TestCase):
                 conversation._generate_single_image(conversation.ConversationRequest(model='gpt-image-2.5'), 1, 1)
         self.assertEqual(caught.exception.code, 'upstream_verification_required')
         self.assertEqual(caught.exception.status_code, 503)
-        get_token.assert_called_once()
+        self.assertEqual(get_token.call_count, 2)
         mark.assert_called_once_with('test-token', False)
         refresh.assert_not_called()
         backend.close.assert_called_once()

@@ -54,7 +54,7 @@ export type ImageTurn = {
   ratio: string;
   tier: string;
   quality: string;
-  outputFormat?: "png" | "gif";
+  outputFormat?: "png" | "gif" | "svg";
   frameCount?: number;
   frameDurationMs?: number;
   images: StoredImage[];
@@ -174,7 +174,7 @@ function normalizeTurn(turn: ImageTurn & Record<string, unknown>): ImageTurn {
   return {
     id: String(turn.id || `${Date.now()}`),
     prompt: String(turn.prompt || ""),
-    outputFormat: turn.outputFormat === "gif" ? "gif" : "png",
+    outputFormat: turn.outputFormat === "gif" || turn.outputFormat === "svg" ? turn.outputFormat : "png",
     frameCount: Number(turn.frameCount || 9),
     frameDurationMs: Number(turn.frameDurationMs || 200),
     model: (turn.model as ImageModel) || "gpt-image-2.5",

@@ -77,9 +77,8 @@ class OfficialImagesTests(unittest.TestCase):
 
     def test_invalid_animation_options_are_rejected_before_network(self):
         invalid = [
-            {"model": "codex-gpt-image-2.6", "output_format": "gif"},
             {"model": MODEL, "output_format": "gif", "frame_count": 1},
-            {"model": MODEL, "output_format": "gif", "frame_count": 65},
+            {"model": MODEL, "output_format": "gif", "frame_count": 17},
             {"model": MODEL, "output_format": "gif", "frame_duration_ms": 19},
             {"model": MODEL, "output_format": "gif", "stream": True},
             {"model": MODEL, "output_format": "gif", "output_compression": 80},
@@ -87,7 +86,7 @@ class OfficialImagesTests(unittest.TestCase):
         ]
         for body in invalid:
             with self.subTest(body=body), self.assertRaises(HTTPException):official.validate_image_options(body)
-        with self.assertRaises(HTTPException):official.validate_image_options({"model": MODEL, "output_format": "gif"}, editing=True)
+        with self.assertRaises(HTTPException):official.validate_image_options({"model": MODEL, "output_format": "svg"}, editing=True)
         self.assertEqual(official.validate_image_options({"model": MODEL, "output_format": "gif"})["frame_count"], 9)
 
     def test_animation_is_not_silently_flattened_for_editing(self):
