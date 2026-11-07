@@ -1,6 +1,7 @@
 "use client";
 
 import { imageMimeType } from "@/lib/image-format";
+import { prepareReferenceFile } from "@/lib/image-reference";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowDown, History, LoaderCircle, Plus, Trash2 } from "lucide-react";
@@ -212,6 +213,17 @@ async function buildReferenceImageFromStoredImage(image: StoredImage, fileName: 
     },
     file,
   };
+}
+
+async function preparedReference(file: File, t: TFunction) {
+  const prepared = await prepareReferenceFile(file, t("errors.readReferenceImageFailed"));
+  const referenceImage: StoredReferenceImage = {
+    name: prepared.file.name,
+    type: prepared.file.type || "image/png",
+    dataUrl: await readFileAsDataUrl(prepared.file, t),
+    preparation: prepared.firstFrame ? "first_frame" : undefined,
+  };
+  return { file: prepared.file, referenceImage, firstFrame: prepared.firstFrame };
 }
 
 function taskDataToStoredImage(image: StoredImage, task: ImageTask, t: TFunction): StoredImage {
@@ -491,6 +503,12 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [referenceImageFiles, setReferenceImageFiles] = useState<File[]>([]);
   const [referenceImages, setReferenceImages] = useState<StoredReferenceImage[]>([]);
+  const [referencePreparationCount, setReferencePreparationCount] = useState(0);
+  const prepareReference = useCallback(async (file: File) => {
+    setReferencePreparationCount((count) => count + 1);
+    try { return await preparedReference(file, t); }
+    finally { setReferencePreparationCount((count) => Math.max(0, count - 1)); }
+  }, [t]);
   const [imageMode, setImageMode] = useState<ImageConversationMode>("generate");
   const [isSourcePickerOpen, setIsSourcePickerOpen] = useState(false);
   const [isStudioOpen, setIsStudioOpen] = useState(false);
@@ -1079,22 +1097,16 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
   const appendReferenceImages = useCallback(async (files: File[]) => {
     if (files.some((file) => file.type === "image/svg+xml" || /\.svg$/i.test(file.name))) { toast.error(t("gif.svgEditUnsupported")); return; }
-    if (files.some((file) => file.type === "image/gif" || /\.gif$/i.test(file.name))) { toast.error(t("gif.editUnsupported")); return; }
     if (files.length === 0) {
       return;
     }
 
     try {
-      const previews = await Promise.all(
-        files.map(async (file) => ({
-          name: file.name,
-          type: file.type || "image/png",
-          dataUrl: await readFileAsDataUrl(file, t),
-        })),
-      );
-
-      setReferenceImageFiles((prev) => [...prev, ...files]);
-      setReferenceImages((prev) => [...prev, ...previews]);
+      const prepared = await Promise.all(files.map((file) => prepareReference(file)));
+      setReferenceImageFiles((prev) => [...prev, ...prepared.map((item) => item.file)]);
+      setReferenceImages((prev) => [...prev, ...prepared.map((item) => item.referenceImage)]);
+      setImageOutputFormat((format) => format === "svg" ? "png" : format);
+      if (prepared.some((item) => item.firstFrame)) toast.info(t("gif.referenceFirstFrame"));
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -1102,7 +1114,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       const message = error instanceof Error ? error.message : t("errors.readReferenceImageFailed");
       toast.error(message);
     }
-  }, [t]);
+  }, [t, prepareReference]);
 
   const handleReferenceImageChange = useCallback(
     async (files: File[]) => {
@@ -1165,19 +1177,21 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   );
 
   const handlePickEditSource = useCallback(async (picked: PickedImage) => {
-    if (picked.type === "image/gif" || picked.dataUrl.startsWith("data:image/gif")) { toast.error(t("gif.editUnsupported")); return; }
     if (picked.type === "image/svg+xml" || picked.dataUrl.startsWith("data:image/svg")) { toast.error(t("gif.svgEditUnsupported")); return; }
     try {
+      const prepared = await prepareReference(dataUrlToFile(picked.dataUrl, picked.name, picked.type));
       setImageMode("edit");
-      setReferenceImages([{ name: picked.name, type: picked.type, dataUrl: picked.dataUrl }]);
-      setReferenceImageFiles([dataUrlToFile(picked.dataUrl, picked.name, picked.type)]);
+      setImageOutputFormat((format) => format === "svg" ? "png" : format);
+      setReferenceImages([prepared.referenceImage]);
+      setReferenceImageFiles([prepared.file]);
+      if (prepared.firstFrame) toast.info(t("gif.referenceFirstFrame"));
       setImagePrompt("");
       textareaRef.current?.focus();
     } catch (error) {
       const message = error instanceof Error ? error.message : t("errors.readResultImageFailed");
       toast.error(message);
     }
-  }, [t]);
+  }, [t, prepareReference]);
 
   const handleClearEditSource = useCallback(() => {
     setReferenceImages([]);
@@ -1207,12 +1221,13 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
       }
       const [file] = files;
       if (file.type === "image/svg+xml" || /\.svg$/i.test(file.name)) { toast.error(t("gif.svgEditUnsupported")); return; }
-      if (file.type === "image/gif" || /\.gif$/i.test(file.name)) { toast.error(t("gif.editUnsupported")); return; }
       try {
-        const dataUrl = await readFileAsDataUrl(file, t);
+        const prepared = await prepareReference(file);
         setImageMode("edit");
-        setReferenceImages([{ name: file.name, type: file.type || "image/png", dataUrl }]);
-        setReferenceImageFiles([file]);
+        setImageOutputFormat((format) => format === "svg" ? "png" : format);
+        setReferenceImages([prepared.referenceImage]);
+        setReferenceImageFiles([prepared.file]);
+        if (prepared.firstFrame) toast.info(t("gif.referenceFirstFrame"));
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -1222,13 +1237,12 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         toast.error(message);
       }
     },
-    [t],
+    [t, prepareReference],
   );
 
   const handleContinueEdit = useCallback(
     async (conversationId: string, image: StoredImage | StoredReferenceImage) => {
       if (("dataUrl" in image && image.dataUrl.startsWith("data:image/svg")) || (!("dataUrl" in image) && imageMimeType(image.b64_json, image.url) === "image/svg+xml")) { toast.error(t("gif.svgEditUnsupported")); return; }
-      if (("dataUrl" in image && image.dataUrl.startsWith("data:image/gif")) || (!("dataUrl" in image) && imageMimeType(image.b64_json, image.url) === "image/gif")) { toast.error(t("gif.editUnsupported")); return; }
       try {
         const nextReference =
           "dataUrl" in image
@@ -1241,11 +1255,14 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
           return;
         }
 
+        const prepared = await prepareReference(nextReference.file);
         setSelectedConversationId(conversationId);
-
         setImageMode("edit");
-        setReferenceImages([nextReference.referenceImage]);
-        setReferenceImageFiles([nextReference.file]);
+        setImageOutputFormat((format) => format === "svg" ? "png" : format);
+        setReferenceImages([{ ...nextReference.referenceImage, ...prepared.referenceImage,
+          preparation: prepared.referenceImage.preparation || nextReference.referenceImage.preparation }]);
+        setReferenceImageFiles([prepared.file]);
+        if (prepared.firstFrame) toast.info(t("gif.referenceFirstFrame"));
         setImagePrompt("");
         setIsStudioOpen(true);
         toast.success(t("page.toasts.editorOpened"));
@@ -1254,7 +1271,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
         toast.error(message);
       }
     },
-    [t],
+    [t, prepareReference],
   );
 
   const handleReuseTurnConfig = useCallback(async (conversationId: string, turnId: string) => {
@@ -1690,6 +1707,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
   }, [conversations, runConversationQueue]);
 
   const handleSubmit = async () => {
+    if (referencePreparationCount > 0) { toast.info(t("gif.preparingReference")); return; }
     const prompt = imagePrompt.trim();
     if (!prompt) {
       toast.error(t("page.toasts.emptyPrompt"));
@@ -1905,6 +1923,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
             availableQuota={availableQuota}
             activeTaskCount={activeTaskCount}
             referenceImages={referenceImages}
+            isPreparingReferences={referencePreparationCount > 0}
             textareaRef={textareaRef}
             fileInputRef={fileInputRef}
             imageMode={imageMode}

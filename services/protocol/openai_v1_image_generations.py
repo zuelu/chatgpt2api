@@ -10,7 +10,7 @@ from services.protocol.conversation import (
     stream_image_outputs_with_pool,
 )
 from utils.helper import DEFAULT_IMAGE_MODEL
-from services.official_image_service import OFFICIAL_IMAGE_MODELS, official_image_request, resolve_image_model, validate_image_options, reject_animated_inputs
+from services.official_image_service import OFFICIAL_IMAGE_MODELS, official_image_request, resolve_image_model, validate_image_options
 from utils.image_tokens import count_image_output_items_tokens, image_usage
 
 

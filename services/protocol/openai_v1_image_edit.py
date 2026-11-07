@@ -15,7 +15,8 @@ from services.protocol.conversation import (
     stream_image_outputs_with_pool,
 )
 from utils.helper import DEFAULT_IMAGE_MODEL
-from services.official_image_service import OFFICIAL_IMAGE_MODELS, official_image_request, resolve_image_model, validate_image_options, reject_animated_inputs
+from services.official_image_service import OFFICIAL_IMAGE_MODELS, official_image_request, resolve_image_model, validate_image_options
+from services.image_input_service import prepare_image_references
 from utils.image_tokens import count_image_inputs_tokens, count_image_output_items_tokens, image_usage
 
 
@@ -55,9 +56,8 @@ def handle(body: dict[str, Any]) -> dict[str, Any] | Iterator[dict[str, Any]]:
     validate_image_options(body, editing=True)
     if body["model"] in OFFICIAL_IMAGE_MODELS:
         return official_image_request(body)
-    reject_animated_inputs(body.get("images") or [])
     prompt = str(body.get("prompt") or "")
-    images = body.get("images") or []
+    images, adjustments = prepare_image_references(body.get("images") or [])
     masks = body.get("mask") or []
     images = _composite_mask(images, masks)
     model = str(body.get("model") or DEFAULT_IMAGE_MODEL)
@@ -91,6 +91,8 @@ def handle(body: dict[str, Any]) -> dict[str, Any] | Iterator[dict[str, Any]]:
     if body.get("stream"):
         return stream_image_chunks(outputs)
     result = collect_image_outputs(outputs)
+    if adjustments:
+        result["input_adjustments"] = adjustments
     result["usage"] = image_usage(
         input_text_tokens=count_text_tokens(prompt, model),
         input_image_tokens=count_image_inputs_tokens(images, model),

@@ -89,11 +89,12 @@ class OfficialImagesTests(unittest.TestCase):
         with self.assertRaises(HTTPException):official.validate_image_options({"model": MODEL, "output_format": "svg"}, editing=True)
         self.assertEqual(official.validate_image_options({"model": MODEL, "output_format": "gif"})["frame_count"], 9)
 
-    def test_animation_is_not_silently_flattened_for_editing(self):
-        with mock.patch.object(official.OfficialImagesClient, "images") as upstream:
-            with self.assertRaises(HTTPException):
-                edits.handle({"model": MODEL, "prompt": "edit", "images": [(encoded_image(), "test.gif", "image/gif")]})
-        upstream.assert_not_called()
+    def test_animated_reference_is_prepared_and_conversion_is_disclosed(self):
+        data = encoded_image(False)
+        with mock.patch("services.account_service.account_service", self.accounts), mock.patch.object(official.OfficialImagesClient, "images", return_value={"data": [{"b64_json": base64.b64encode(data).decode()}]}) as upstream, mock.patch("services.protocol.conversation.save_image_bytes", return_value="https://test/out.png"):
+            result = edits.handle({"model": MODEL, "prompt": "edit", "images": [(encoded_image(), "test.gif", "image/gif")]})
+        self.assertEqual(upstream.call_args.args[1][0][2], "image/png")
+        self.assertEqual(result["input_adjustments"][0]["code"], "reference_first_frame")
 
     def test_gif_generation_preserves_bytes_and_native_parameters(self):
         data = encoded_image(); captured = {}

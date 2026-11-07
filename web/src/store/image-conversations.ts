@@ -17,6 +17,7 @@ export type StoredReferenceImage = {
   name: string;
   type: string;
   dataUrl: string;
+  preparation?: "first_frame";
   /** 局部编辑的选区遮罩；涂抹/圈选区域为透明。缺省表示整图编辑 */
   maskDataUrl?: string;
   /** 图上的标注钉子，提交时并入提示词 */
@@ -112,6 +113,7 @@ function normalizeReferenceImage(image: StoredReferenceImage): StoredReferenceIm
     name: image.name || "reference.png",
     type: image.type || "image/png",
     dataUrl: image.dataUrl,
+    preparation: image.preparation === "first_frame" ? "first_frame" : undefined,
     maskDataUrl: typeof image.maskDataUrl === "string" && image.maskDataUrl ? image.maskDataUrl : undefined,
     annotations: Array.isArray(image.annotations)
       ? image.annotations

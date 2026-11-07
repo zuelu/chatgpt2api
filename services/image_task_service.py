@@ -160,6 +160,8 @@ def _public_task(task: dict[str, Any]) -> dict[str, Any]:
         item["frame_duration_ms"] = task.get("frame_duration_ms")
     if task.get("data") is not None:
         item["data"] = task.get("data")
+    if task.get("input_adjustments"):
+        item["input_adjustments"] = task["input_adjustments"]
     if task.get("usage") is not None:
         item["usage"] = task.get("usage")
     if task.get("error"):
@@ -433,7 +435,9 @@ class ImageTaskService:
         # 创建进度回调，每个步骤完成后更新任务状态
         def progress_callback(step: str) -> None:
             if step == "image_stream_resolve_start":
-                self._update_task(key, started_ts=time.time())
+                with self._lock:
+                    if not self._tasks.get(key, {}).get("started_ts"):
+                        self._update_task(key, started_ts=time.time())
             self._update_task(key, progress=step)
         # 将进度回调添加到 payload 中（handler 会提取并传递给 ConversationRequest）
         payload_with_progress = {**payload, "progress_callback": progress_callback}
@@ -480,6 +484,7 @@ class ImageTaskService:
                 key,
                 status=TASK_STATUS_SUCCESS,
                 data=data,
+                input_adjustments=result.get("input_adjustments") or [],
                 usage=usage,
                 error="",
                 duration_ms=duration_ms,
@@ -498,6 +503,7 @@ class ImageTaskService:
                 request_preview=request_text(payload.get("prompt")),
                 urls=_collect_image_urls(data),
                 account_email=account_email,
+                input_adjustments=result.get("input_adjustments") or [],
                 conversation_id=conversation_id,
             )
         except Exception as exc:
@@ -563,6 +569,7 @@ class ImageTaskService:
         urls: list[str] | None = None,
         account_email: str = "",
         conversation_id: str = "",
+        input_adjustments: list[dict] | None = None,
     ) -> None:
         endpoint = "/v1/images/edits" if mode == "edit" else "/v1/images/generations"
         summary_prefix = "图生图" if mode == "edit" else "文生图"
@@ -585,6 +592,8 @@ class ImageTaskService:
             detail["account_email"] = account_email
         if conversation_id:
             detail["conversation_id"] = conversation_id
+        if input_adjustments:
+            detail["input_adjustments"] = input_adjustments
         if urls:
             detail["urls"] = list(dict.fromkeys(urls))
         try:
@@ -649,6 +658,8 @@ class ImageTaskService:
                 "error_code": _clean(item.get("error_code")),
                 "request_hash": _clean(item.get("request_hash")),
             }
+            if isinstance(item.get("input_adjustments"), list):
+                task["input_adjustments"] = item["input_adjustments"]
             data = item.get("data")
             if isinstance(data, list):
                 task["data"] = data

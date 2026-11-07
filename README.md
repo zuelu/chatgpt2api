@@ -21,7 +21,7 @@
 
 
 
-## 官方 API、GIF 与 SVG（v1.12.0）
+## 官方 API、GIF 与 SVG（v1.12.1）
 
 在 **号池管理 → 导入账户 → 手动添加官方 API** 中填写名称和 OpenAI API Key 后保存。画图页面选择 GIF/SVG 时，会自动使用 `api-gpt-image-2.6-sunburst`（细节优先）；也可手动选择 `api-gpt-image-2.6-flare`（速度优先）。这些模型调用官方 `https://api.openai.com/v1`，按 API 余额计费，与 ChatGPT 订阅和原 Codex 通道分开；原默认模型不变。账号列表不回显密钥。
 
@@ -39,7 +39,7 @@
 }
 ```
 
-此 JSON 可发送至 `POST /v1/images/generations`；异步 `POST /api/image-tasks/generations` 另需 `client_task_id`。返回的 `b64_json` 解码后是 GIF，或使用返回的 `.gif` URL。帧数范围 2–16，每帧时长 20–2000 毫秒（上游按 10 毫秒取整），尺寸与总像素预算由官方校验。静态参考图可通过 `POST /v1/images/edits` 生成 GIF；GIF 不支持遮罩、流式输出或压缩参数。动画输入编辑会明确拒绝，避免静默丢帧。
+此 JSON 可发送至 `POST /v1/images/generations`；异步 `POST /api/image-tasks/generations` 另需 `client_task_id`。返回的 `b64_json` 解码后是 GIF，或使用返回的 `.gif` URL。帧数范围 2–16，每帧时长 20–2000 毫秒（上游按 10 毫秒取整），尺寸与总像素预算由官方校验。静态参考图可通过 `POST /v1/images/edits` 生成 GIF；GIF 不支持遮罩、流式输出或压缩参数。上传 GIF、动态 WebP、APNG 等多帧参考图时，会自动使用首帧 PNG 来生成海报或其他图片；网页显示处理提示和静态预览，API 响应及日志包含 `input_adjustments`。这是以首帧为参考重新生成，原文件不变；选择 GIF 输出仍会返回原生动画。无需用户手动提取帧或转换文件。
 
 SVG 示例：
 
@@ -60,7 +60,7 @@ GIF/SVG 即使省略 `model` 或传入 Codex 模型，服务端也会自动选�
 
 详见 [OpenAI 官方图片生成文档](https://developers.openai.com/api/docs/guides/image-generation)。SVG 与静态参考图生成 GIF 已使用官方 API 实测。
 
-更新固定镜像标签至 `ghcr.io/zuelu/chatgpt2api-maintained:1.12.0`，或沿用 `latest`，执行 `docker compose pull app` 和 `docker compose up -d app` 即可；配置、账号和历史数据无需迁移。
+更新固定镜像标签至 `ghcr.io/zuelu/chatgpt2api-maintained:1.12.1`，或沿用 `latest`，执行 `docker compose pull app` 和 `docker compose up -d app` 即可；配置、账号和历史数据无需迁移。
 
 
 ## GPT Image 2.6（v1.10.0）

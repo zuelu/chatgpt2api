@@ -356,6 +356,8 @@ class LoggedCall:
             detail["request_text"] = request_excerpt
         if self.request_shape:
             detail["request_shape"] = self.request_shape
+        if isinstance(result, dict) and result.get("input_adjustments"):
+            detail["input_adjustments"] = result["input_adjustments"]
         if error:
             detail["error"] = error
         email = str(account_email or "").strip()

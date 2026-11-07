@@ -241,10 +241,11 @@
     "duration": "ms mỗi khung",
     "hint": "GIF tự dùng API chính thức · 512×512 · Tính phí API",
     "generationOnly": "GIF tự dùng mô hình API chính thức, hỗ trợ ảnh tham chiếu tĩnh.",
-    "editUnsupported": "Chưa hỗ trợ sửa GIF động. Hãy trích xuất một khung tĩnh trước.",
     "svgHint": "SVG tự dùng API chính thức và tính phí API.",
     "svgGenerationOnly": "SVG chỉ hỗ trợ tạo từ văn bản. Hãy bỏ ảnh tham chiếu.",
     "svgEditUnsupported": "Chưa hỗ trợ sửa SVG trực tiếp. Xuất thành PNG rồi tải lên.",
-    "maskUnsupported": "GIF không hỗ trợ mặt nạ. Xóa vùng chọn rồi thử lại."
+    "maskUnsupported": "GIF không hỗ trợ mặt nạ. Xóa vùng chọn rồi thử lại.",
+    "referenceFirstFrame": "Dùng khung hình đầu làm ảnh tham chiếu. Giữ nguyên tệp gốc và định dạng đầu ra đã chọn.",
+    "preparingReference": "Đang xử lý ảnh tham chiếu…"
   }
 }

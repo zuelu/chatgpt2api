@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import type { ImageConversationMode } from "@/store/image-conversations";
 
 type ImageComposerProps = {
+  isPreparingReferences: boolean;
   prompt: string;
   imageCount: string;
   imageRatio: string;
@@ -34,6 +35,7 @@ type ImageComposerProps = {
   referenceImages: Array<{
     name: string;
     dataUrl: string;
+    preparation?: "first_frame";
     maskDataUrl?: string;
     annotations?: Array<{ id: string; x: number; y: number; text: string }>;
   }>;
@@ -109,6 +111,7 @@ export function ImageComposer({
   imageWidth,
   imageHeight,
   imageQuality,
+  isPreparingReferences,
   imageOutputFormat, frameCount, frameDurationMs, onImageOutputFormatChange, onFrameCountChange, onFrameDurationMsChange,
   imageModel,
   imageModels,
@@ -422,6 +425,9 @@ export function ImageComposer({
                 {imageOutputFormat === "svg" ? <span className="text-xs text-stone-500">{t("gif.svgHint")}</span> : null}
               </div>
             )}
+            {referenceImages.some((image) => image.preparation === "first_frame") ? (
+              <p role="status" className="px-4 pt-2 text-xs text-stone-500">{t("gif.referenceFirstFrame")}</p>
+            ) : null}
             <Textarea
               ref={textareaRef}
               value={prompt}
@@ -682,11 +688,11 @@ export function ImageComposer({
                 <button
                   type="button"
                   onClick={() => void onSubmit()}
-                  disabled={!prompt.trim() || (isEditMode && !editSourceImage)}
+                  disabled={isPreparingReferences || !prompt.trim() || (isEditMode && !editSourceImage)}
                   className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 sm:size-11"
-                  aria-label={isEditMode || referenceImages.length > 0 ? t("composer.actions.editImage") : t("composer.actions.generateImage")}
+                  aria-label={isPreparingReferences ? t("gif.preparingReference") : isEditMode || referenceImages.length > 0 ? t("composer.actions.editImage") : t("composer.actions.generateImage")}
                 >
-                  <ArrowUp className="size-3.5 sm:size-4" />
+                  {isPreparingReferences ? <LoaderCircle className="size-3.5 animate-spin sm:size-4" /> : <ArrowUp className="size-3.5 sm:size-4" />}
                 </button>
               </div>
             </div>

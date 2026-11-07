@@ -159,6 +159,8 @@ def is_model_text_reply_instead_of_image(message: str) -> bool:
 
 
 def encode_images(images: Iterable[tuple[bytes, str, str]]) -> list[str]:
+    from services.image_input_service import prepare_image_references
+    images, _ = prepare_image_references(images)
     return [base64.b64encode(data).decode("ascii") for data, _, _ in images if data]
 
 

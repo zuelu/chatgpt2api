@@ -15,6 +15,7 @@ from fastapi import HTTPException
 from PIL import Image
 
 from utils.helper import DEFAULT_IMAGE_MODEL
+from services.image_input_service import prepare_image_references
 from utils.image_formats import svg_root
 from utils.image_retry import can_retry_with_another_account
 
@@ -129,18 +130,6 @@ def validate_image_options(body: dict, *, editing: bool = False) -> dict[str, An
     return options
 
 
-def reject_animated_inputs(images: list) -> None:
-    for data, _, _ in images:
-        if data.lstrip().startswith((b"<", b"\xef\xbb\xbf")):
-            raise HTTPException(400, detail={"error": {"message": "SVG is not supported as a raster edit input. Export it as PNG first.", "code": "svg_edit_input_unsupported"}})
-        try:
-            with Image.open(io.BytesIO(data)) as image:
-                if getattr(image, "is_animated", False):
-                    raise HTTPException(400, detail={"error": {"message": "Animated image editing is not supported; select a still frame explicitly before editing.", "code": "animated_image_edit_unsupported"}})
-        except (OSError, ValueError):
-            pass
-
-
 def official_image_request(body: dict) -> dict:
     from services.account_service import account_service
     from services.protocol.conversation import ImageGenerationError, format_image_result
@@ -148,8 +137,7 @@ def official_image_request(body: dict) -> dict:
     options = validate_image_options(body, editing=bool(body.get("images")))
     if body.get("retain_conversation") or body.get("provider_binding_id"):
         raise HTTPException(400, detail={"error": "Official Images API does not support retained ChatGPT conversation bindings."})
-    images = body.get("images") or []
-    reject_animated_inputs(images)
+    images, adjustments = prepare_image_references(body.get("images") or [])
     payload = {"model": OFFICIAL_IMAGE_MODELS[body["model"]], "prompt": str(body.get("prompt") or ""),
                "n": int(body.get("n") or 1), "quality": str(body.get("quality") or "auto"), **options}
     if body.get("size"):
@@ -174,6 +162,8 @@ def official_image_request(body: dict) -> dict:
         try:
             account = account_service.get_account(account_id) or {}
             client = OfficialImagesClient(str(account.get("api_key") or ""))
+            if callable(body.get("progress_callback")):
+                body["progress_callback"]("image_stream_resolve_start")
             try:
                 result = client.images(payload, images, body.get("mask"))
             except OfficialAPIError as error:
@@ -198,6 +188,10 @@ def official_image_request(body: dict) -> dict:
             except (ValueError, OSError) as error:
                 raise OfficialAPIError("The upstream response contained invalid image data.", code="invalid_upstream_image") from error
             formatted = format_image_result(items, payload["prompt"], str(body.get("response_format") or "b64_json"), body.get("base_url"))
+            if adjustments:
+                formatted["input_adjustments"] = adjustments
+            if callable(body.get("progress_callback")):
+                body["progress_callback"]("receiving_image")
             for field in ("usage", "svg_usage"):
                 if isinstance(result.get(field), dict):
                     formatted[field] = result[field]

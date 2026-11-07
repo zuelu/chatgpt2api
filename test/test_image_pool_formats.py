@@ -74,7 +74,7 @@ class ImagePoolFormatsTests(unittest.TestCase):
         self.assertEqual([item[0] for item in attempts], ['fake-key-a', 'fake-key-b', 'fake-key-c'])
         self.assertTrue(all(item[1:] == ('gpt-image-2.6-sunburst', 'gif') for item in attempts))
         self.assertEqual(result['data'][0]['mime_type'], 'image/gif')
-        self.assertEqual(progress, ['getting_account'] * 3)
+        self.assertEqual(progress, ['getting_account', 'image_stream_resolve_start'] * 3 + ['receiving_image'])
         self.assertEqual([a['fail'] for a in self.accounts.list_accounts()], [1, 1, 0])
         self.assertEqual([a['success'] for a in self.accounts.list_accounts()], [0, 0, 1])
         self.assertTrue(all(a['image_inflight'] == 0 for a in self.accounts.list_accounts()))
@@ -136,7 +136,7 @@ class ImagePoolFormatsTests(unittest.TestCase):
         with self.assertRaises(HTTPException):
             official.validate_image_options({'output_format': 'svg'}, editing=True)
         with self.assertRaises(HTTPException):
-            official.reject_animated_inputs([(SVG, 'test.svg', 'image/svg+xml')])
+            official.prepare_image_references([(SVG, 'test.svg', 'image/svg+xml')])
 
     def test_svg_storage_preserves_vector_bytes_dimensions_and_preview(self):
         with mock.patch('services.image_storage_service.config') as config:
