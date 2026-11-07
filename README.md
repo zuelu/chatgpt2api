@@ -21,6 +21,12 @@
 
 
 
+## 手机端使用优化（v1.13.0）
+
+手机端可直接描述画面并点击箭头生成，或上传参考图继续修改。图像设置支持滚动、完成按钮及 Escape；手机 Enter 换行，中文输入法确认候选字不会误提交。从编辑流程点击“新建”会恢复创作模式。号池和日志提供手机纵向记录，支持深色模式、页面缩放及系统减少动态效果设置。
+
+GIF/SVG 仍自动选用官方 API 号池；动图参考素材自动使用首帧，原文件保留。界面回归、PNG/GIF/SVG 下载及真实动图参考生成已验证。审计范围、修复和设备验证边界见 [移动端审计报告](docs/ux/mobile-audit.md)。
+
 ## 官方 API、GIF 与 SVG（v1.12.1）
 
 在 **号池管理 → 导入账户 → 手动添加官方 API** 中填写名称和 OpenAI API Key 后保存。画图页面选择 GIF/SVG 时，会自动使用 `api-gpt-image-2.6-sunburst`（细节优先）；也可手动选择 `api-gpt-image-2.6-flare`（速度优先）。这些模型调用官方 `https://api.openai.com/v1`，按 API 余额计费，与 ChatGPT 订阅和原 Codex 通道分开；原默认模型不变。账号列表不回显密钥。
@@ -60,7 +66,7 @@ GIF/SVG 即使省略 `model` 或传入 Codex 模型，服务端也会自动选�
 
 详见 [OpenAI 官方图片生成文档](https://developers.openai.com/api/docs/guides/image-generation)。SVG 与静态参考图生成 GIF 已使用官方 API 实测。
 
-更新固定镜像标签至 `ghcr.io/zuelu/chatgpt2api-maintained:1.12.1`，或沿用 `latest`，执行 `docker compose pull app` 和 `docker compose up -d app` 即可；配置、账号和历史数据无需迁移。
+更新固定镜像标签至 `ghcr.io/zuelu/chatgpt2api-maintained:1.13.0`，或沿用 `latest`，执行 `docker compose pull app` 和 `docker compose up -d app` 即可；配置、账号和历史数据无需迁移。
 
 
 ## GPT Image 2.6（v1.10.0）
