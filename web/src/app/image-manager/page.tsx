@@ -279,7 +279,6 @@ function ImageManagerContent() {
     <section className="space-y-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-1">
-          <div className="text-xs font-semibold tracking-[0.18em] text-stone-500 uppercase">Images</div>
           <h1 className="text-2xl font-semibold tracking-tight">{tCommon("nav.imageManager")}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -457,12 +456,12 @@ function ImageManagerContent() {
               </label>
               {selectedPaths.length > 0 ? <span>{t("toolbar.selected", { total: selectedPaths.length })}</span> : null}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button variant="ghost" className="h-8 rounded-lg px-3 text-stone-500" onClick={() => void loadImages()} disabled={isLoading}>
                 <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
                 {t("actions.refresh")}
               </Button>
-              <button type="button" className="text-sm text-stone-500 hover:text-stone-900 disabled:text-stone-300" onClick={() => setSelectedPaths([])} disabled={selectedPaths.length === 0 || isDeleting}>
+              <button type="button" className="min-h-11 shrink-0 whitespace-nowrap text-sm text-stone-500 hover:text-stone-900 disabled:text-stone-300" onClick={() => setSelectedPaths([])} disabled={selectedPaths.length === 0 || isDeleting}>
                 {t("toolbar.clearSelection")}
               </button>
               <Button variant="outline" className="h-8 rounded-lg border-stone-200 bg-white px-3 text-stone-600 hover:bg-stone-50" onClick={() => void handleBatchDownload()} disabled={selectedPaths.length === 0 || isDownloading || isDeleting}>

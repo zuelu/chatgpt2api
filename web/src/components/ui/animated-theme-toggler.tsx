@@ -184,7 +184,7 @@ export const AnimatedThemeToggler = ({
       localStorage.setItem("chatgpt2api-theme", newTheme ? "dark" : "light")
     }
 
-    if (typeof document.startViewTransition !== "function") {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof document.startViewTransition !== "function") {
       applyTheme()
       return
     }

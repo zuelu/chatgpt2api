@@ -1,6 +1,6 @@
 "use client";
 import { ArrowUp, ChevronDown, ImagePlus, Info, LoaderCircle, Pencil, RectangleHorizontal, RectangleVertical, Sparkles, Square, Trash2, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type RefObject } from "react";
+import { useMemo, useState, type ClipboardEvent, type DragEvent, type RefObject } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,7 @@ import { ImageLightbox } from "@/components/image-lightbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import type { ImageModel } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -143,9 +144,6 @@ export function ImageComposer({
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isSizeMenuOpen, setIsSizeMenuOpen] = useState(false);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
-  const [sizeMenuPos, setSizeMenuPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
-  const sizeMenuRef = useRef<HTMLDivElement>(null);
-  const sizeMenuBtnRef = useRef<HTMLButtonElement>(null);
   const lightboxImages = useMemo(
     () => referenceImages.map((image, index) => ({ id: `${image.name}-${index}`, src: image.dataUrl })),
     [referenceImages],
@@ -162,28 +160,6 @@ export function ImageComposer({
   const isCodexModel = imageModel.toLowerCase().includes("codex");
   const isEditMode = imageMode === "edit";
   const editSourceImage = isEditMode ? referenceImages[0] ?? null : null;
-
-  useEffect(() => {
-    if (!isSizeMenuOpen) {
-      return;
-    }
-    const handlePointerDown = (event: MouseEvent) => {
-      const target = event.target;
-      if (
-        target instanceof Element &&
-        target.closest('[data-slot="select-content"], [data-slot="select-trigger"]')
-      ) {
-        return;
-      }
-      if (!sizeMenuRef.current?.contains(target as Node)) {
-        setIsSizeMenuOpen(false);
-      }
-    };
-    window.addEventListener("mousedown", handlePointerDown);
-    return () => {
-      window.removeEventListener("mousedown", handlePointerDown);
-    };
-  }, [isSizeMenuOpen]);
 
   const handleTextareaPaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
     const imageFiles = Array.from(event.clipboardData.files).filter((file) => file.type.startsWith("image/"));
@@ -257,6 +233,7 @@ export function ImageComposer({
           <div className="inline-flex rounded-full bg-stone-100 p-1 dark:bg-white/10">
             <button
               type="button"
+              aria-pressed={!isEditMode}
               onClick={() => onImageModeChange("generate")}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-[13px]",
@@ -270,6 +247,7 @@ export function ImageComposer({
             </button>
             <button
               type="button"
+              aria-pressed={isEditMode}
               onClick={() => onImageModeChange("edit")}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition sm:text-[13px]",
@@ -417,6 +395,7 @@ export function ImageComposer({
                     <option value="png">PNG</option><option value="gif">GIF</option><option value="svg" disabled={isEditMode || referenceImages.length > 0}>SVG</option>
                   </select>
                 </label>
+                <span className="ml-auto text-xs text-stone-500">{t("composer.quota.label")} {availableQuota}</span>
                 {imageOutputFormat === "gif" ? <>
                   <label className="flex items-center gap-1">{t("gif.frames")}<input aria-label={t("gif.frames")} type="number" min={2} max={16} className="w-16 rounded border p-1" value={frameCount} onChange={(e) => onFrameCountChange(Number(e.target.value))} /></label>
                   <label className="flex items-center gap-1">{t("gif.duration")}<input aria-label={t("gif.duration")} type="number" min={20} max={2000} step={10} className="w-20 rounded border p-1" value={frameDurationMs} onChange={(e) => onFrameDurationMsChange(Number(e.target.value))} /></label>
@@ -443,12 +422,13 @@ export function ImageComposer({
                     : t("composer.placeholder.generateMode")
               }
               onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
+                if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229 && !window.matchMedia("(pointer: coarse)").matches) {
                   event.preventDefault();
                   void onSubmit();
                 }
               }}
-              className="min-h-[82px] resize-none rounded-[24px] border-0 bg-transparent px-4 pt-4 pb-2 text-[15px] leading-6 text-stone-900 shadow-none placeholder:text-stone-400 focus-visible:ring-0 dark:text-stone-100 dark:placeholder:text-stone-500 sm:min-h-[148px] sm:rounded-[32px] sm:px-6 sm:pt-6 sm:pb-20 sm:leading-7"
+              aria-label={t("composer.promptLabel")}
+              className="min-h-[82px] resize-none rounded-[24px] border-0 bg-transparent px-4 pt-4 pb-2 text-[15px] leading-6 text-stone-900 shadow-none placeholder:text-stone-500 focus-visible:ring-0 dark:text-stone-100 dark:placeholder:text-stone-500 sm:min-h-[148px] sm:rounded-[32px] sm:px-6 sm:pt-6 sm:pb-20 sm:leading-7"
             />
             {isDraggingImage ? (
               <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-[24px] border-2 border-dashed border-stone-900 bg-white/85 text-sm font-medium text-stone-900 backdrop-blur-[1px] sm:rounded-[32px]">
@@ -461,7 +441,7 @@ export function ImageComposer({
 
             <div className="rounded-b-[24px] border-t border-stone-100 bg-white px-3 pb-3 pt-2 dark:border-white/10 dark:bg-stone-950/95 sm:absolute sm:inset-x-0 sm:bottom-0 sm:rounded-b-none sm:border-t-0 sm:bg-gradient-to-t sm:from-white sm:via-white/95 sm:to-transparent sm:px-6 sm:pb-4 sm:pt-6 sm:dark:from-stone-950 sm:dark:via-stone-950/95 sm:dark:to-stone-950/0" onClick={(event) => event.stopPropagation()}>
               <div className="flex items-end justify-between gap-2 sm:gap-3">
-                <div className="hide-scrollbar flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:pb-0">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-3">
                   {!isEditMode ? (
                     <Button
                       type="button"
@@ -474,44 +454,33 @@ export function ImageComposer({
                       <span className="hidden sm:inline">{referenceImages.length > 0 ? t("composer.actions.addReference") : t("composer.actions.upload")}</span>
                     </Button>
                   ) : null}
-                  <div className="shrink-0 rounded-full bg-stone-100 px-2 py-1 text-[10px] font-medium text-stone-600 sm:px-3 sm:py-2 sm:text-xs">
-                    <span className="hidden sm:inline">{t("composer.quota.label")} </span>{availableQuota}
-                  </div>
                   {activeTaskCount > 0 && (
                     <div className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-1 text-[10px] font-medium text-amber-700 sm:gap-1.5 sm:px-3 sm:py-2 sm:text-xs">
                       <LoaderCircle className="size-3 animate-spin" />
                       {activeTaskCount}<span className="hidden sm:inline"> {t("composer.activeTasks.suffix")}</span>
                     </div>
                   )}
-                  <div className="relative flex h-9 min-w-0 shrink items-center rounded-full bg-transparent text-[11px] sm:h-auto sm:shrink-0 sm:text-[13px]">
+                  <Popover open={isSizeMenuOpen} onOpenChange={setIsSizeMenuOpen}>
+                  <div className="relative flex h-11 min-w-0 shrink items-center rounded-full bg-transparent text-[11px] sm:h-auto sm:shrink-0 sm:text-[13px]">
+                    <PopoverTrigger asChild>
                     <button
-                      ref={sizeMenuBtnRef}
                       type="button"
-                      className="inline-flex h-9 w-fit max-w-[calc(100vw-12rem)] items-center justify-between gap-2 rounded-full bg-stone-100 px-4 text-left text-xs font-semibold text-stone-900 sm:h-10 sm:max-w-none sm:text-sm"
-                      onClick={() => {
-                        if (!isSizeMenuOpen && sizeMenuBtnRef.current) {
-                          const rect = sizeMenuBtnRef.current.getBoundingClientRect();
-                          const menuWidth = Math.min(460, window.innerWidth - 32);
-                          setSizeMenuPos({ top: rect.top - 8, left: Math.max(16, Math.min(rect.left, window.innerWidth - menuWidth - 16)) });
-                        }
-                        setIsSizeMenuOpen((open) => !open);
-                      }}
+                      className="inline-flex h-9 w-fit max-w-[calc(100vw-10rem)] items-center justify-between gap-2 rounded-full bg-stone-100 px-4 text-left text-xs font-semibold text-stone-900 sm:h-10 sm:max-w-none sm:text-sm"
+                      aria-label={t("composer.sizeMenu.title")}
                     >
                       <span className="truncate">{imageSizeLabel}</span>
                       <ChevronDown className={cn("size-4 shrink-0 opacity-60 transition", isSizeMenuOpen && "rotate-180")} />
                     </button>
-                    {isSizeMenuOpen ? (
-                      <div
-                        ref={sizeMenuRef}
-                        className="fixed z-[80] max-h-[62dvh] overflow-y-auto rounded-[24px] border border-stone-200/70 bg-white p-4 shadow-[0_30px_90px_-34px_rgba(15,23,42,0.42)] sm:max-h-none sm:overflow-visible"
-                        style={{
-                          top: sizeMenuPos.top,
-                          left: sizeMenuPos.left,
-                          transform: "translateY(-100%)",
-                          width: "min(460px, calc(100vw - 2rem))",
-                        }}
+                    </PopoverTrigger>
+                      <PopoverContent
+                        side="top" align="start" sideOffset={12} collisionPadding={16}
+                        aria-label={t("composer.sizeMenu.title")}
+                        className="z-[80] max-h-[min(70dvh,var(--radix-popover-content-available-height))] w-[min(460px,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-2xl border-stone-200 bg-white p-4 shadow-xl"
                       >
-                        <h3 className="mb-3 text-base font-semibold text-stone-950">{t("composer.sizeMenu.title")}</h3>
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                          <h3 className="text-base font-semibold text-stone-950">{t("composer.sizeMenu.title")}</h3>
+                          <button type="button" aria-label={t("composer.closeSettings")} className="flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-stone-100" onClick={() => setIsSizeMenuOpen(false)}><X className="size-4" /></button>
+                        </div>
                         <div className="mb-3">
                           <div className="mb-2 text-sm font-medium text-stone-900">{t("composer.sizeMenu.modelLabel")}</div>
                           <Select
@@ -520,7 +489,7 @@ export function ImageComposer({
                               onImageModelChange(value as ImageModel);
                             }}
                           >
-                            <SelectTrigger className="h-10 rounded-xl border-stone-200 bg-white text-sm shadow-none">
+                            <SelectTrigger aria-label={t("composer.sizeMenu.modelLabel")} className="h-10 rounded-xl border-stone-200 bg-white text-sm shadow-none">
                               <div className="flex min-w-0 items-center gap-2">
                                 <img
                                   src="/openai.svg"
@@ -582,6 +551,7 @@ export function ImageComposer({
                                 type="number"
                                 inputMode="numeric"
                                 min="1"
+                                aria-label={t("composer.width")}
                                 value={imageWidth}
                                 onChange={(event) => onImageWidthChange(event.target.value)}
                                 className="h-7 border-0 bg-transparent px-0 text-sm font-medium text-stone-800 shadow-none focus-visible:ring-0"
@@ -594,6 +564,7 @@ export function ImageComposer({
                                 type="number"
                                 inputMode="numeric"
                                 min="1"
+                                aria-label={t("composer.height")}
                                 value={imageHeight}
                                 onChange={(event) => onImageHeightChange(event.target.value)}
                                 className="h-7 border-0 bg-transparent px-0 text-sm font-medium text-stone-800 shadow-none focus-visible:ring-0"
@@ -673,15 +644,16 @@ export function ImageComposer({
                               min="1"
                               max="100"
                               step="1"
+                              aria-label={t("composer.sizeMenu.countLabel")}
                               value={imageCount}
                               onChange={(event) => onImageCountChange(event.target.value)}
                               className="h-9 rounded-full border-stone-200 bg-white px-3 text-center text-sm font-medium text-stone-800 shadow-none focus-visible:ring-0"
                             />
                           </div>
                         </div>
-                      </div>
-                    ) : null}
+                      </PopoverContent>
                   </div>
+                  </Popover>
 
                 </div>
 
@@ -689,7 +661,7 @@ export function ImageComposer({
                   type="button"
                   onClick={() => void onSubmit()}
                   disabled={isPreparingReferences || !prompt.trim() || (isEditMode && !editSourceImage)}
-                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 sm:size-11"
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-stone-950 text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-300 sm:size-11"
                   aria-label={isPreparingReferences ? t("gif.preparingReference") : isEditMode || referenceImages.length > 0 ? t("composer.actions.editImage") : t("composer.actions.generateImage")}
                 >
                   {isPreparingReferences ? <LoaderCircle className="size-3.5 animate-spin sm:size-4" /> : <ArrowUp className="size-3.5 sm:size-4" />}

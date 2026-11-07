@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
+import { VersionReleaseDialog } from "@/components/version-release-dialog";
 import { HeaderActions } from "@/components/header-actions";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -171,12 +172,13 @@ export function TopNav() {
                     );
                     return (
                       <SheetClose asChild key={item.href}>
-                        <Link href={item.href} className={className}>{item.label}</Link>
+                        <Link href={item.href} aria-current={active ? "page" : undefined} className={className}>{item.label}</Link>
                       </SheetClose>
                     );
                   })}
                 </nav>
                 <SheetFooter>
+                  <VersionReleaseDialog />
                   <button
                     type="button"
                     className="rounded-xl border border-stone-200 px-3 py-2.5 text-left text-sm font-medium text-stone-500 transition hover:text-stone-950 dark:border-white/10 dark:text-stone-300 dark:hover:text-white"

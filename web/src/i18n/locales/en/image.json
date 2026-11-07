@@ -58,11 +58,16 @@
       "noSelection": "No area selected",
       "change": "Change image",
       "openEditor": "Open editor"
-    }
+    },
+    "promptLabel": "Image description",
+    "closeSettings": "Done with settings",
+    "width": "Image width",
+    "height": "Image height"
   },
   "results": {
     "empty": {
-      "subtitle": "Keeps local history and task state in the same window, and lets you start a new stateless edit from an existing result image."
+      "subtitle": "Describe your image and tap the arrow to create it. Add a reference image, or switch to Edit to change an image.",
+      "title": "Turn ideas into images"
     },
     "turn": {
       "label": "Turn {{index}}",

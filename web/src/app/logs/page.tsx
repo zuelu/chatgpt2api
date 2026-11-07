@@ -169,7 +169,6 @@ function LogsContent() {
     <section className="space-y-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-1">
-          <div className="text-xs font-semibold tracking-[0.18em] text-stone-500 uppercase">Logs</div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("header.title")}</h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -206,12 +205,12 @@ function LogsContent() {
               </label>
               {selectedIds.length > 0 ? <span>{t("toolbar.selected", { total: selectedIds.length })}</span> : null}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button variant="ghost" className="h-8 rounded-lg px-3 text-stone-500" onClick={() => void loadLogs()} disabled={isLoading}>
                 <RefreshCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
                 {t("toolbar.refresh")}
               </Button>
-              <button type="button" className="text-sm text-stone-500 hover:text-stone-900 disabled:text-stone-300" onClick={() => setSelectedIds([])} disabled={selectedIds.length === 0 || isDeleting || isClearing}>
+              <button type="button" className="min-h-11 shrink-0 whitespace-nowrap text-sm text-stone-500 hover:text-stone-900 disabled:text-stone-300" onClick={() => setSelectedIds([])} disabled={selectedIds.length === 0 || isDeleting || isClearing}>
                 {t("toolbar.clearSelection")}
               </button>
               <Button variant="outline" className="h-8 rounded-lg border-rose-200 bg-white px-3 text-rose-600 hover:bg-rose-50" onClick={() => setDeletingItems(items.filter((item) => selectedSet.has(item.id)))} disabled={selectedIds.length === 0 || isDeleting || isClearing}>
@@ -230,7 +229,7 @@ function LogsContent() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            <Table className="min-w-[900px]">
+            <Table className="mobile-records log-records min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12"></TableHead>
@@ -252,19 +251,19 @@ function LogsContent() {
                       <TableCell>
                         <Checkbox checked={selectedSet.has(item.id)} onCheckedChange={(checked) => toggleIds([item.id], Boolean(checked))} />
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">{item.time}</TableCell>
-                      <TableCell><Badge variant="secondary" className="rounded-md">{typeLabels[item.type] || item.type}</Badge></TableCell>
-                      {isCallLog ? <TableCell>{getDetailText(item, "key_name")}</TableCell> : null}
-                      {isCallLog ? <TableCell>{formatDuration(item)}</TableCell> : null}
+                      <TableCell data-label={t("table.time")} className="whitespace-nowrap">{item.time}</TableCell>
+                      <TableCell data-label={t("table.type")}><Badge variant="secondary" className="rounded-md">{typeLabels[item.type] || item.type}</Badge></TableCell>
+                      {isCallLog ? <TableCell data-label={t("table.tokenName")}>{getDetailText(item, "key_name")}</TableCell> : null}
+                      {isCallLog ? <TableCell data-label={t("table.duration")}>{formatDuration(item)}</TableCell> : null}
                       {isCallLog ? (
-                        <TableCell>
+                        <TableCell data-label={t("table.status")}>
                           <Badge variant={item.detail?.status === "failed" ? "danger" : "success"} className="rounded-md">
                             {getStatus(item)}
                           </Badge>
                         </TableCell>
                       ) : null}
                       {isCallLog ? (
-                        <TableCell>
+                        <TableCell data-label={t("table.image")}>
                           {urls.length ? (
                             <div className="flex items-center gap-1.5">
                               {urls.slice(0, 3).map((url, imageIndex) => (
@@ -288,8 +287,8 @@ function LogsContent() {
                           )}
                         </TableCell>
                       ) : null}
-                      <TableCell className="max-w-[420px] truncate text-stone-500">{item.summary || "-"}</TableCell>
-                      <TableCell>
+                      <TableCell data-label={t("table.summary")} className="max-w-[420px] truncate text-stone-500">{item.summary || "-"}</TableCell>
+                      <TableCell data-label={t("table.actions")}>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" className="h-8 rounded-lg px-3 text-stone-600" onClick={() => openDetail(item)}>
                             {t("rowActions.viewDetail")}
@@ -305,7 +304,7 @@ function LogsContent() {
               </TableBody>
             </Table>
           </div>
-          <div className="flex items-center justify-end gap-2 border-t border-stone-100 px-4 py-3 text-sm text-stone-500">
+          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-stone-100 px-4 py-3 text-sm text-stone-500">
             <span>{t("pagination.info", { page: safePage, pageCount, total: items.length })}</span>
             <Button variant="outline" size="icon" className="size-9 rounded-lg border-stone-200 bg-white" disabled={safePage <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
               <ChevronLeft className="size-4" />
@@ -322,7 +321,7 @@ function LogsContent() {
           <DialogHeader className="shrink-0 border-b border-stone-100 px-6 py-5">
             <DialogTitle>{t("detail.title")}</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
             <div className="space-y-4">
               <div className="grid gap-3 rounded-xl border border-stone-200 bg-white p-4 text-sm text-stone-600 md:grid-cols-2">
                 {Object.entries(detailLog?.detail || {})

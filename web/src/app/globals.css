@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./motion.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -228,4 +229,53 @@
 ::view-transition-old(root), ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
+}
+/* Shared interaction floor for touch devices; desktop keeps its compact density. */
+:root { color-scheme: light; }
+.dark { color-scheme: dark; }
+::selection { background: var(--primary); color: var(--primary-foreground); }
+input, textarea { caret-color: var(--foreground); }
+button:focus-visible, a:focus-visible, summary:focus-visible, select:focus-visible {
+  outline: 2px solid var(--foreground);
+  outline-offset: 3px;
+}
+@media (pointer: coarse) {
+  button:not([role="checkbox"]), [role="tab"], [role="combobox"], select, summary {
+    min-height: 44px;
+  }
+  button[aria-label]:not([role="checkbox"]), header a { min-width: 44px; }
+  header a { display: inline-flex; align-items: center; min-height: 44px; }
+  input:not([type="checkbox"]):not([type="file"]), textarea, select { font-size: 16px; }
+  [data-slot="tabs-list"] { height: auto; }
+  button[role="checkbox"] { position: relative; }
+  button[role="checkbox"]::before { content: ""; position: absolute; inset: -14px; }
+}
+@media (max-width: 639px) {
+  .mobile-records { display: block; width: 100%; min-width: 0; }
+  .mobile-records > thead { display: none; }
+  .mobile-records > tbody { display: block; }
+  .mobile-records > tbody > tr {
+    display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 12px; padding: 16px; border-bottom: 1px solid var(--border);
+  }
+  .mobile-records td { display: block; min-width: 0; padding: 0; overflow-wrap: anywhere; white-space: normal; }
+  .mobile-records td[data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 4px;
+    color: var(--muted-foreground); font-size: 12px; font-weight: 400;
+    letter-spacing: normal;
+  }
+  .mobile-records td:first-child { grid-column: 1/-1; padding: 4px 0; }
+  .mobile-records td:last-child { grid-column: 1/-1; }
+  .account-records td:nth-child(2), .account-records td:nth-child(6),
+  .log-records td:nth-child(2), .log-records td:nth-last-child(2) { grid-column: 1/-1; }
+  .log-records td:nth-last-child(2) { max-width: none; overflow: visible; }
+}
+/* Respect the system setting for every existing spinner and Tailwind animation. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

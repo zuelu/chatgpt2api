@@ -954,6 +954,8 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
 
   const resetComposer = useCallback(() => {
     clearComposerInputs();
+    setImageMode("generate");
+    setIsSourcePickerOpen(false);
   }, [clearComposerInputs]);
 
   const handleCreateDraft = () => {
@@ -1858,6 +1860,7 @@ function ImagePageContent({ isAdmin }: { isAdmin: boolean }) {
               variant="outline"
               className="h-10 rounded-2xl border-stone-200 bg-white/85 px-3 text-stone-600 shadow-sm"
               onClick={openClearHistoryConfirm}
+              aria-label={t("page.deleteDialog.titleAll")}
               disabled={conversations.length === 0}
             >
               <Trash2 className="size-4" />

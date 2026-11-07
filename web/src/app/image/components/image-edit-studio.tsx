@@ -5,6 +5,7 @@ import { Eraser, Lasso, MessageSquarePlus, Redo2, Send, Undo2, X } from "lucide-
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export type StudioPoint = { x: number; y: number };
@@ -555,7 +556,8 @@ export function ImageEditStudio({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-white dark:bg-stone-950">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent showCloseButton={false} aria-describedby={undefined} className="fixed inset-0 top-0 left-0 z-[100] flex h-dvh max-h-none w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-white p-0 dark:bg-stone-950">
       {/* 顶栏 */}
       <header className="relative flex shrink-0 items-center gap-3 px-4 py-3">
         <button
@@ -566,10 +568,10 @@ export function ImageEditStudio({
         >
           <X className="size-5" />
         </button>
-        <h2 className="truncate text-sm font-medium text-stone-800 dark:text-stone-100">
+        <DialogTitle className="truncate text-sm font-medium text-stone-800 dark:text-stone-100">
           {title || t("editor.title")}
-        </h2>
-        <div className="ml-auto flex items-center gap-2 text-xs text-stone-500 dark:text-stone-400">
+        </DialogTitle>
+        <div className="ml-auto hidden items-center gap-2 text-xs sm:flex text-stone-500 dark:text-stone-400">
           <span className="rounded-full bg-stone-100 px-2.5 py-1 dark:bg-white/10">{model}</span>
           <span className="rounded-full bg-stone-100 px-2.5 py-1 dark:bg-white/10">
             {size} · {quality}
@@ -579,7 +581,7 @@ export function ImageEditStudio({
 
       {/* 工具条 / 提示条 */}
       <div className="pointer-events-none absolute inset-x-0 top-14 z-20 overflow-x-auto px-2 pb-2">
-        <div className="pointer-events-auto mx-auto flex w-max items-center gap-1 rounded-full border border-stone-200/80 bg-white/95 p-1 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.45)] backdrop-blur dark:border-white/10 dark:bg-stone-900/95">
+        <div className="pointer-events-auto mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 rounded-2xl border border-stone-200/80 bg-white/95 p-1 shadow-[0_18px_50px_-24px_rgba(15,23,42,0.45)] backdrop-blur dark:border-white/10 dark:bg-stone-900/95">
           {activeTool ? (
             <>
               <span className="px-3 text-xs font-medium text-stone-700 dark:text-stone-200 sm:text-[13px]">
@@ -728,7 +730,7 @@ export function ImageEditStudio({
                   value={draftText}
                   onChange={(event) => setDraftText(event.target.value)}
                   onKeyDown={(event) => {
-                    if (event.key === "Enter") {
+                    if (!event.nativeEvent.isComposing && event.keyCode !== 229 && event.key === "Enter") {
                       event.preventDefault();
                       commitAnnotation();
                     }
@@ -781,7 +783,7 @@ export function ImageEditStudio({
             value={prompt}
             onChange={(event) => onPromptChange(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
+              if (!event.nativeEvent.isComposing && event.keyCode !== 229 && event.key === "Enter" && !event.shiftKey) {
                 event.preventDefault();
                 if (canSubmit) void onSubmit();
               }
@@ -805,7 +807,8 @@ export function ImageEditStudio({
           </button>
         </div>
       </div>
-    </div>
+    </DialogContent>
+    </Dialog>
   );
 }
 

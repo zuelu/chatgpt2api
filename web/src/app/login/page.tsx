@@ -22,6 +22,7 @@ export default function LoginPage() {
   const { isCheckingAuth } = useRedirectIfAuthenticated();
 
   const handleLogin = async () => {
+    if (isSubmitting) return;
     const normalizedAuthKey = authKey.trim();
     if (!normalizedAuthKey) {
       toast.error(t("errors.keyRequired"));
@@ -79,7 +80,7 @@ export default function LoginPage() {
               value={authKey}
               onChange={(event) => setAuthKey(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") {
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) {
                   void handleLogin();
                 }
               }}

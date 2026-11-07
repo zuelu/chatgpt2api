@@ -56,11 +56,16 @@
       "noSelection": "Chưa chọn vùng",
       "change": "Đổi ảnh",
       "openEditor": "Mở trình chỉnh sửa"
-    }
+    },
+    "promptLabel": "Mô tả hình ảnh",
+    "closeSettings": "Hoàn tất cài đặt",
+    "width": "Chiều rộng ảnh",
+    "height": "Chiều cao ảnh"
   },
   "results": {
     "empty": {
-      "subtitle": "Giữ lịch sử cục bộ và trạng thái tác vụ trong cùng một cửa sổ, đồng thời cho phép bắt đầu chỉnh sửa không trạng thái mới từ ảnh kết quả đã có."
+      "subtitle": "Mô tả hình ảnh rồi nhấn mũi tên để tạo. Thêm ảnh tham chiếu hoặc chọn Chỉnh sửa để sửa ảnh.",
+      "title": "Biến ý tưởng thành hình ảnh"
     },
     "turn": {
       "label": "Lượt {{index}}",

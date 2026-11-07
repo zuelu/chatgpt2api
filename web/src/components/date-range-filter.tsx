@@ -38,7 +38,7 @@ export function DateRangeFilter({ startDate, endDate, onChange }: DateRangeFilte
             {label}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-3" align="start">
+        <PopoverContent className="max-h-[75dvh] max-w-[calc(100vw-2rem)] overflow-auto p-3" align="start" collisionPadding={16}>
           <Calendar
             mode="range"
             defaultMonth={selected?.from}

@@ -129,20 +129,10 @@ export function ImageResults({
     return (
       <div className="flex h-full min-h-[260px] items-center justify-center text-center sm:min-h-[420px]">
         <div className="w-full max-w-4xl">
-          <h1
-            className="text-2xl font-semibold tracking-tight text-stone-950 sm:text-3xl md:text-5xl"
-            style={{
-              fontFamily: '"Palatino Linotype","Book Antiqua","URW Palladio L","Times New Roman",serif',
-            }}
-          >
-            Turn ideas into images
+          <h1 className="text-2xl font-semibold tracking-tight text-stone-950 sm:text-3xl">
+            {t("results.empty.title")}
           </h1>
-          <p
-            className="mx-auto mt-3 max-w-[280px] text-sm italic tracking-[0.01em] text-stone-500 sm:mt-4 sm:max-w-none sm:text-[15px]"
-            style={{
-              fontFamily: '"Palatino Linotype","Book Antiqua","URW Palladio L","Times New Roman",serif',
-            }}
-          >
+          <p className="mx-auto mt-3 max-w-[30ch] text-sm leading-6 text-stone-600 sm:text-base">
             {t("results.empty.subtitle")}
           </p>
         </div>
@@ -176,7 +166,7 @@ export function ImageResults({
             {!turn.promptDeleted ? (
               <div className="flex justify-end">
                 <div className="max-w-[90%] px-1 py-1 text-[14px] leading-6 text-stone-900 sm:max-w-[82%] sm:text-[15px] sm:leading-7">
-                  <div className="mb-1.5 flex flex-wrap justify-end gap-2 text-[11px] text-stone-400 sm:mb-2">
+                  <div className="mb-1.5 flex flex-wrap justify-end gap-2 text-[11px] text-stone-500 sm:mb-2">
                     <span>{t("results.turn.label", { index: turnIndex + 1 })}</span>
                     <span>
                       {turn.mode === "edit" ? t("results.turn.modeEdit") : t("results.turn.modeGenerate")}
@@ -280,8 +270,8 @@ export function ImageResults({
                             <div className="flex flex-col gap-1 px-0.5 py-1 text-[10px] sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3 sm:py-3 sm:text-xs">
                               <div className="min-w-0 text-stone-500">
                                 <span>{t("results.image.resultLabel", { index: index + 1 })}</span>
-                                {image.durationMs != null ? <span className="text-stone-400 sm:ml-2">{formatDuration(image.durationMs)}</span> : null}
-                                {imageMeta ? <span className="block text-stone-400">{imageMeta}</span> : null}
+                                {image.durationMs != null ? <span className="text-stone-500 sm:ml-2">{formatDuration(image.durationMs)}</span> : null}
+                                {imageMeta ? <span className="block text-stone-500">{imageMeta}</span> : null}
                               </div>
                               <div className="flex items-center gap-1.5">
                                 <Button
@@ -313,21 +303,13 @@ export function ImageResults({
                       if (image.status === "error") {
                         const isTimeoutError = image.error?.includes("超时") && image.taskId;
                         return (
-                          <div key={image.id} className="break-inside-avoid">
+                          <div key={image.id} className="col-span-full break-inside-avoid">
                             <div
-                              className={cn(
-                                "overflow-hidden rounded-xl border border-rose-200 bg-rose-50",
-                                "aspect-square",
-                                turn.ratio === "1:1" && "sm:aspect-square",
-                                turn.ratio === "16:9" && "sm:aspect-video",
-                                turn.ratio === "9:16" && "sm:aspect-[9/16]",
-                                turn.ratio === "4:3" && "sm:aspect-[4/3]",
-                                turn.ratio === "3:4" && "sm:aspect-[3/4]",
-                              )}
+                              className="rounded-xl border border-rose-200 bg-rose-50"
                             >
-                            <div className="flex h-full min-h-16 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-[11px] leading-4 text-rose-600 sm:gap-3 sm:px-6 sm:py-8 sm:text-sm sm:leading-6">
+                            <div className="flex h-full min-h-16 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-sm leading-6 text-rose-600 sm:gap-3 sm:px-6 sm:py-8 sm:text-sm sm:leading-6">
                               <p className="font-medium">{t("results.image.indexLabel", { index: index + 1, total: turn.images.length })}</p>
-                              <span className="line-clamp-2 sm:line-clamp-none">{image.error || t("errors.generationFailed")}</span>
+                              <span role="alert" className="break-words">{image.error || t("errors.generationFailed")}</span>
                               <div className="flex items-center gap-2">
                                 {isTimeoutError && (
                                   <button
@@ -351,7 +333,7 @@ export function ImageResults({
                             <div className="flex flex-col gap-1 px-0.5 py-1 text-[10px] sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:px-3 sm:py-3 sm:text-xs">
                               <div className="min-w-0 text-stone-500">
                                 <span>{t("results.image.resultLabel", { index: index + 1 })}</span>
-                                {image.durationMs != null ? <span className="text-stone-400 sm:ml-2">{formatDuration(image.durationMs)}</span> : null}
+                                {image.durationMs != null ? <span className="text-stone-500 sm:ml-2">{formatDuration(image.durationMs)}</span> : null}
                                 <span className="block text-transparent">-</span>
                               </div>
                             </div>
@@ -392,13 +374,13 @@ export function ImageResults({
                             <p className="text-[11px] font-medium leading-4 sm:text-sm">
                               {t("results.image.indexLabel", { index: index + 1, total: turn.images.length })}
                             </p>
-                            <p className="text-[10px] leading-4 text-stone-400 sm:text-xs">
+                            <p role="status" className="t-shimmer text-xs leading-4" data-text={imageStatusLabel}>
                               {imageStatusLabel}
                             </p>
                           </div>
                           </div>
                           {elapsedDisplay != null && (
-                            <div className="px-0.5 py-1 text-[10px] text-stone-400 sm:px-3 sm:py-3 sm:text-xs">{elapsedDisplay}</div>
+                            <div className="px-0.5 py-1 text-[10px] text-stone-500 sm:px-3 sm:py-3 sm:text-xs">{elapsedDisplay}</div>
                           )}
                         </div>
                       );
@@ -406,7 +388,7 @@ export function ImageResults({
                   </div>
 
                   {turn.status === "error" && turn.error ? (
-                    <div className="mt-4 flex items-center justify-between border-l-2 border-amber-300 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-amber-700">
+                    <div className="mt-4 flex items-center justify-between rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3 text-sm leading-6 text-amber-700">
                       <span>{turn.error}</span>
                       <button
                         type="button"

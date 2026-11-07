@@ -183,7 +183,7 @@ export function ImageSourcePicker({
         </DialogHeader>
 
         <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col gap-0">
-          <div className="flex items-center justify-between gap-3 px-6 pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 pb-3 sm:px-6">
             <TabsList className="rounded-full bg-stone-100 p-1">
               <TabsTrigger
                 value="history"

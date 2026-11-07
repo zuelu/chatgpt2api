@@ -20,7 +20,7 @@ export function HeaderActions({ className, showGithubText = true }: { className?
         <img src="/github.svg" alt="" className="size-4" />
         {showGithubText ? <span className="hidden sm:inline">GitHub</span> : null}
       </a>
-      <VersionReleaseDialog />
+      <div className="hidden sm:block"><VersionReleaseDialog /></div>
     </div>
   );
 }

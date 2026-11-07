@@ -755,9 +755,6 @@ function AccountsPageContent() {
     <>
       <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-1">
-          <div className="text-xs font-semibold tracking-[0.18em] text-stone-500 uppercase">
-            Account Pool
-          </div>
           <h1 className="text-2xl font-semibold tracking-tight">{tCommon("nav.accounts")}</h1>
         </div>
 
@@ -900,7 +897,7 @@ function AccountsPageContent() {
       />
 
       <section className="space-y-3">
-        <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           {metricCards.map((item) => {
             const Icon = item.icon;
             const value = (refreshSummary ?? summary)[item.key];
@@ -908,7 +905,7 @@ function AccountsPageContent() {
               <Card key={item.key} className="rounded-2xl border-white/80 bg-white/90 shadow-sm">
                 <CardContent className="p-4">
                   <div className="mb-4 flex items-start justify-between">
-                    <span className="text-xs font-medium text-stone-400">{item.label}</span>
+                    <span className="text-xs font-medium text-stone-500">{item.label}</span>
                     <Icon className="size-4 text-stone-400" />
                   </div>
                   <div className={cn("text-[1.75rem] font-semibold tracking-tight", item.color)}>
@@ -923,17 +920,18 @@ function AccountsPageContent() {
         </div>
         <Card className="rounded-2xl border-white/80 bg-white/90 shadow-sm">
           <CardContent className="p-4">
-            <div className="mb-3 text-sm font-medium text-stone-700">
+            <details>
+            <summary className="cursor-pointer text-sm font-medium text-stone-700">
               {t("models.title")}
               <span className="ml-1 text-stone-400">({availableModels.length})</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
+            </summary>
+            <div className="mt-3 flex flex-wrap gap-2">
               {availableModels.length > 0 ? (
                 availableModels.map((model) => (
                   <button
                     key={model.id}
                     type="button"
-                    className="inline-flex cursor-pointer items-center rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-300 hover:bg-stone-50"
+                    className="inline-flex max-w-full cursor-pointer items-center break-all rounded-full border border-stone-200 bg-white px-2.5 py-1 text-xs font-medium text-stone-700 transition hover:border-stone-300 hover:bg-stone-50"
                     onClick={() => {
                       void navigator.clipboard.writeText(model.id);
                       toast.success(t("models.copiedToast"));
@@ -955,11 +953,12 @@ function AccountsPageContent() {
                 <span className="text-sm text-stone-400">{t("models.empty")}</span>
               )}
             </div>
+            </details>
           </CardContent>
         </Card>
       </section>
 
-      <section className="space-y-4">
+      <section className="min-w-0 space-y-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold tracking-tight">{t("table.listTitle")}</h2>
@@ -1036,7 +1035,7 @@ function AccountsPageContent() {
 
         <Card
           className={cn(
-            "overflow-hidden rounded-2xl border-white/80 bg-white/90 shadow-sm",
+            "min-w-0 overflow-hidden rounded-2xl border-white/80 bg-white/90 shadow-sm",
             isLoading && accounts.length === 0 ? "hidden" : "",
           )}
         >
@@ -1088,8 +1087,8 @@ function AccountsPageContent() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1160px] text-left">
+            <div className="min-w-0 overflow-x-auto">
+              <table className="mobile-records account-records w-full min-w-[1160px] text-left">
                 <thead className="border-b border-stone-100 text-[11px] text-stone-400 uppercase tracking-[0.18em]">
                   <tr>
                     <th className="w-12 px-4 py-3">
@@ -1135,7 +1134,7 @@ function AccountsPageContent() {
                             }}
                           />
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnToken")} className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <span className="font-medium tracking-tight text-stone-700">
                               {maskToken(account.access_token)}
@@ -1152,17 +1151,17 @@ function AccountsPageContent() {
                             </button>
                           </div>
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnType")} className="px-4 py-3">
                           <Badge variant="secondary" className="rounded-md bg-stone-100 text-stone-700">
                             {displayAccountType(account)}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnSource")} className="px-4 py-3">
                           <Badge variant="outline" className="rounded-md border-stone-200 text-stone-600">
                             {displayAccountSource(account)}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnStatus")} className="px-4 py-3">
                           <Badge
                             variant={status.badge}
                             className="inline-flex items-center gap-1 rounded-md px-2 py-1"
@@ -1171,10 +1170,10 @@ function AccountsPageContent() {
                             {t(`accountStatus.${ACCOUNT_STATUS_KEYS[account.status]}`)}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnAccountInfo")} className="px-4 py-3">
                           <div className="text-xs leading-5 text-stone-500">{account.email ?? "—"}</div>
                         </td>
-                        <td className="px-4 py-3 text-xs leading-5 text-stone-500">
+                        <td data-label={t("table.columnRenewsAt")} className="px-4 py-3 text-xs leading-5 text-stone-500">
                           {(() => {
                             const renewal = formatSubscriptionRenewal(account);
                             return (
@@ -1185,7 +1184,7 @@ function AccountsPageContent() {
                             );
                           })()}
                         </td>
-                        <td className="px-4 py-3 text-xs leading-5 text-stone-500">
+                        <td data-label={t("table.columnCreatedAt")} className="px-4 py-3 text-xs leading-5 text-stone-500">
                           {(() => {
                             const raw = (account as any).created_at;
                             if (!raw) return "—";
@@ -1196,12 +1195,12 @@ function AccountsPageContent() {
                             } catch { return String(raw).slice(0, 10); }
                           })()}
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnQuota")} className="px-4 py-3">
                           <Badge variant="info" className="rounded-md">
                             {formatQuota(account)}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3 text-xs leading-5 text-stone-500">
+                        <td data-label={t("table.columnRestoreAt")} className="px-4 py-3 text-xs leading-5 text-stone-500">
                           {(() => {
                             const restore = formatRestoreAt(t, account.restore_at);
                             return (
@@ -1212,7 +1211,7 @@ function AccountsPageContent() {
                             );
                           })()}
                         </td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnInflight")} className="px-4 py-3">
                           {(() => {
                             const inflight = account.image_inflight ?? 0;
                             return (
@@ -1233,9 +1232,9 @@ function AccountsPageContent() {
                             );
                           })()}
                         </td>
-                        <td className="px-4 py-3 text-stone-500">{account.success}</td>
-                        <td className="px-4 py-3 text-stone-500">{account.fail}</td>
-                        <td className="px-4 py-3">
+                        <td data-label={t("table.columnSuccess")} className="px-4 py-3 text-stone-500">{account.success}</td>
+                        <td data-label={t("table.columnFail")} className="px-4 py-3 text-stone-500">{account.fail}</td>
+                        <td data-label={t("table.columnActions")} className="px-4 py-3">
                           <div className="flex items-center gap-1 text-stone-400">
                             <button
                               type="button"
@@ -1249,6 +1248,7 @@ function AccountsPageContent() {
                             <button
                               type="button"
                               className="rounded-lg p-2 transition hover:bg-stone-100 hover:text-stone-700"
+                              aria-label={t("table.columnActions") + ": " + tCommon("nav.settings")}
                               onClick={() => openEditDialog(account)}
                               disabled={isUpdating}
                             >
@@ -1257,6 +1257,7 @@ function AccountsPageContent() {
                             <button
                               type="button"
                               className="rounded-lg p-2 transition hover:bg-stone-100 hover:text-stone-700"
+                              aria-label={t("header.refresh")}
                               onClick={() => void handleRefreshAccounts([account.access_token])}
                               disabled={isRefreshing || refreshingTokens.has(account.access_token)}
                             >
@@ -1265,6 +1266,7 @@ function AccountsPageContent() {
                             <button
                               type="button"
                               className="rounded-lg p-2 transition hover:bg-rose-50 hover:text-rose-500"
+                              aria-label={t("toolbar.deleteSelected")}
                               onClick={() => void handleDeleteTokens([account.access_token])}
                               disabled={isDeleting}
                             >
@@ -1292,7 +1294,7 @@ function AccountsPageContent() {
             </div>
 
             <div className="border-t border-stone-100 px-4 py-4">
-              <div className="flex items-center justify-center gap-3 overflow-x-auto whitespace-nowrap">
+              <div className="flex flex-wrap items-center justify-center gap-3">
                 <div className="shrink-0 text-sm text-stone-500">
                   {t("pagination.info", {
                     from: filteredAccounts.length === 0 ? 0 : startIndex + 1,

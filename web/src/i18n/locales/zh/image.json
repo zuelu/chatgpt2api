@@ -56,11 +56,16 @@
       "noSelection": "未圈选区域",
       "change": "换图",
       "openEditor": "打开编辑器"
-    }
+    },
+    "promptLabel": "画面描述",
+    "closeSettings": "完成设置",
+    "width": "图片宽度",
+    "height": "图片高度"
   },
   "results": {
     "empty": {
-      "subtitle": "在同一窗口里保留本地历史与任务状态，并从已有结果图继续发起新的无状态编辑。"
+      "subtitle": "描述你想要的画面，点击箭头即可生成。也可以上传参考图，或切换到「编辑」修改图片。",
+      "title": "把想法变成图片"
     },
     "turn": {
       "label": "第 {{index}} 轮",
